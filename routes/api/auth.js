@@ -50,13 +50,22 @@ router.post("/register", (req, res) => {
         bcrypt.hash(newUser.password, salt, (err, hash) => {
           if (err) throw err;
           newUser.password = hash;
-          newUser
-            .save()
+          newUser.save()
             .then(user => {
-              newProfile
-              .save()
-              .then(profile => res.json(user))
-              .catch(err => console.log(err));
+
+              profile = {
+                "_id": user._id,
+                "nickname": newProfile.nickname,
+                "lastSeen": newProfile.lastSeen,
+                "lastEdited": newProfile.lastEdited,
+                "avatar": newProfile.avatar,
+                "status": newProfile.status,
+              };
+
+              Profile.collection.insert(profile)
+              // newProfile.save()
+                .then(profile => res.json(user))
+                .catch(err => console.log(err));
               // res.json(user)
             })
             .catch(err => console.log(err));
