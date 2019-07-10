@@ -14,9 +14,9 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
-  date: {
-    type: Date,
-    default: Date.now
-  }
+  chats: {
+    type: [String],
+    default: []
+  },
 });
-module.exports = User = mongoose.model("users", UserSchema);
+module.exports = User = mongoose.model("Users", UserSchema);
