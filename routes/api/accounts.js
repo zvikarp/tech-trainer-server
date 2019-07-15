@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
-const auth = require("../../config/auth");
+const verifier = require("../../config/verifier");
 
 // @route GET api/accounts/get
 // @desc return accounts types
@@ -12,14 +12,12 @@ const auth = require("../../config/auth");
 const Settings = require("../../models/Settings");
 
 router.get("/get", (req, res) => {
-  const userid = auth.token(req.headers['token']);
-  console.log(userid);
-  
-
-  
-  // let token = req.headers['token'] || req.headers['authorization'];
-
-
+  verifier(req.headers['token'], (res) => {
+    if (!res.success) {
+      return res.status(400).json({ success: false, message: 'Valid auth token is required' });
+    }
+    console.log(res);
+  });
 
   Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(accounts => {
 
