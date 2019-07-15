@@ -9,9 +9,6 @@ const User = require("../../models/User");
 // @route POST api/user/accounts/update
 // @access User
 // api updates the users connectede accounts ids.
-// TODO: have the accounts and "otherFields" in seperate docs, the names would be the ids, not random strings.
-// TODO: every account would have a id, so it wount depend on the name.
-// TODO: change the name to something else then accounts and other stuff...
 // TODO: should have a instructions field on how to get the id from every site.
 router.post('/accounts/update', (req, routerRes) => {
     verifier(req.headers['authorization'], (verifierRes) => {
