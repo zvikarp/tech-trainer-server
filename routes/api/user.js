@@ -6,33 +6,54 @@ const keys = require("../../config/keys");
 const verifier = require("../../config/verifier");
 const User = require("../../models/User");
 
-// @route GET api/user/accounts/update
-// @access Authed
-
-// api returns all types of accounts
+// @route POST api/user/accounts/update
+// @access User
+// api updates the users connectede accounts ids.
 // TODO: have the accounts and "otherFields" in seperate docs, the names would be the ids, not random strings.
 // TODO: every account would have a id, so it wount depend on the name.
 // TODO: change the name to something else then accounts and other stuff...
-router.post("/accounts/update", (req, routerRes) => {
-    console.log(req.headers);
-    
+// TODO: should have a instructions field on how to get the id from every site.
+router.post('/accounts/update', (req, routerRes) => {
     verifier(req.headers['authorization'], (verifierRes) => {
         if (!verifierRes.success) {
-            return routerRes.status(400).json(verifierRes);
+            return routerRes.status(400).json(verifierRes); // returns jibrish. need to tweek.
         }
         const uid = verifierRes.id;
         User.findOne({ _id: uid }).then(user => {
-            if (!user) return routerRes.status(400).json({ message: "error" });
+            if (!user) return routerRes.status(400).json({ message: "error" }); // can do better then this...
             var accounts = user.accounts;
             const newAccounts = req.body.accounts;
             Object.keys(newAccounts).forEach(key => {
                 accounts[key] = newAccounts[key];
             });
             User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
-                if (!user) return routerRes.status(400).json({ message: "error" });
+                if (!user) return routerRes.status(400).json({ message: "error" }); // just "error" is NOT useful
+                // TODO: should return a success message
             });
         });
     });
 });
+
+
+// @route GET api/user/accounts/get
+// @access User
+// api gets all users active connected accounts details.
+router.get('/accounts/get', (req, routerRes) => {
+    verifier(req.headers['token'], (verifierRes) => {
+        console.log(verifierRes);
+        
+        if (!verifierRes.success) {
+            return routerRes.status(400).json(verifierRes); // same as above ^
+        }
+        const uid = verifierRes.id;
+        User.findOne({ _id: uid }).then(user => {
+            if (!user) return routerRes.status(400).json({ message: "error" }); // should have a error handeler for all errors...
+            var accounts = user.accounts;
+            console.log(accounts);
+            return routerRes.json(accounts);
+        });
+    });
+});
+
 
 module.exports = router;
