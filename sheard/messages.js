@@ -11,13 +11,13 @@ const messages = {
         'success': false,
         'message': 'Auth token is not supplied'
     },
-    UNKNOWN_ERROR: {
+    USER_NOT_FOUND_ERROR: {
         'success': false,
-        'message': 'An unknown error occurred, please try again.'
+        'message': 'It seems like the user does not exist in our databases'
     },
-    UNKNOWN_ERROR: {
-        'success': false,
-        'message': 'An unknown error occurred, please try again.'
+    GENERAL_SUCCESS: {
+        'success': true,
+        'message': 'The operation was successful'
     },
 };
 

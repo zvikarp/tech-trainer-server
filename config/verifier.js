@@ -6,7 +6,7 @@ const messages = require("../sheard/messages")
 // return the user object with `success = true` if able to validate token
 module.exports = function (token, callback) {
     try {
-        if (!tozken) {
+        if (!token) {
             return callback(messages.TOKEN_NOT_SUPPLIED_ERROR);
         }
         if (token.startsWith('Bearer ')) {

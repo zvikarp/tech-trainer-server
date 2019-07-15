@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const verifier = require("../../config/verifier");
 const User = require("../../models/User");
+const messages = require("../../sheard/messages");
 
 // @route POST api/user/accounts/update
 // @access User
@@ -17,14 +18,14 @@ router.post('/accounts/update', (req, routerRes) => {
         }
         const uid = verifierRes.id;
         User.findOne({ _id: uid }).then(user => {
-            if (!user) return routerRes.status(400).json({ message: "error" }); // can do better then this...
+            if (user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR); // can do better then this...
             var accounts = user.accounts;
             const newAccounts = req.body.accounts;
             Object.keys(newAccounts).forEach(key => {
                 accounts[key] = newAccounts[key];
             });
             User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
-                if (!user) return routerRes.status(400).json({ message: "error" }); // just "error" is NOT useful
+                if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR); // just "error" is NOT useful
                 // TODO: should return a success message
             });
         });
