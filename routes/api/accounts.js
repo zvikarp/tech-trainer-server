@@ -4,29 +4,27 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const verifier = require("../../config/verifier");
-
-// @route GET api/accounts/get
-// @desc return accounts types
-// @access Public
-
 const Settings = require("../../models/Settings");
 
-router.get("/get", (req, res) => {
-  verifier(req.headers['token'], (res) => {
-    if (!res.success) {
-      return res.status(400).json({ success: false, message: 'Valid auth token is required' });
+// @route GET api/accounts/get
+// @access Authed
+
+// api returns all types of accounts
+// TODO: have the accounts and "otherFields" in seperate docs, the names would be the ids, not random strings.
+// TODO: every account would have a id, so it wount depend on the name.
+// TODO: change the name to something else then accounts and other stuff...
+router.get("/get", (req, routerRes) => {
+  verifier(req.headers['token'], (verifierRes) => {
+    if (!verifierRes.success) {
+      return routerRes.status(400).json(verifierRes);
     }
-    console.log(res);
-  });
-
-  Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(accounts => {
-
-    if (accounts) {
-      return res.json(accounts)
-    } else {
-      return res.status(400).json({ accounts: "invalid request" });
-
-    }
+    Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(accounts => {
+      if (accounts) {
+        return routerRes.json(accounts)
+      } else {
+        return routerRes.status(400).json({ accounts: "invalid request" });
+      }
+    });
   });
 });
 

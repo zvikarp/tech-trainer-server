@@ -18,5 +18,9 @@ const UserSchema = new Schema({
     type: [String],
     default: []
   },
+  accounts: {
+    type: Object,
+    default: {}
+  },
 });
 module.exports = User = mongoose.model("Users", UserSchema);
