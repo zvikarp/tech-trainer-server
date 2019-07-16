@@ -5,6 +5,7 @@ const passport = require("passport");
 const auth = require("./routes/api/auth");
 const user = require("./routes/api/user");
 const accounts = require("./routes/api/accounts");
+const cronjob = require("./routes/api/cronjob");
 const app = express();
 
 // Bodyparser middleware
@@ -27,6 +28,7 @@ mongoose
   .then(() => console.log("MongoDB successfully connected"))
   .catch(err => console.log(err));
 mongoose.set('useFindAndModify', false);
+mongoose.Promise = global.Promise;
 
 // Passport middleware
 app.use(passport.initialize());
@@ -36,6 +38,7 @@ require("./config/passport")(passport);
 app.use("/api/auth", auth);
 app.use("/api/user", user);
 app.use("/api/accounts", accounts);
+app.use("/api/cronjob", cronjob);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server up and running on port ${port} !`));

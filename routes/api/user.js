@@ -14,19 +14,20 @@ const messages = require("../../sheard/messages");
 router.post('/accounts/update', (req, routerRes) => {
     verifier(req.headers['authorization'], (verifierRes) => {
         if (!verifierRes.success) {
-            return routerRes.status(400).json(verifierRes); // returns jibrish. need to tweek.
+            return routerRes.status(400).json(verifierRes);
         }
         const uid = verifierRes.id;
         User.findOne({ _id: uid }).then(user => {
-            if (user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR); // can do better then this...
+            if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
             var accounts = user.accounts;
             const newAccounts = req.body.accounts;
             Object.keys(newAccounts).forEach(key => {
                 accounts[key] = newAccounts[key];
             });
             User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
-                if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR); // just "error" is NOT useful
+                if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
                 // TODO: should return a success message
+                return routerRes.json(messages.GENERAL_SUCCESS);
             });
         });
     });
@@ -41,11 +42,11 @@ router.get('/accounts/get', (req, routerRes) => {
         console.log(verifierRes);
         
         if (!verifierRes.success) {
-            return routerRes.status(400).json(verifierRes); // same as above ^
+            return routerRes.status(400).json(verifierRes);
         }
         const uid = verifierRes.id;
         User.findOne({ _id: uid }).then(user => {
-            if (!user) return routerRes.status(400).json({ message: "error" }); // should have a error handeler for all errors...
+            if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
             var accounts = user.accounts;
             console.log(accounts);
             return routerRes.json(accounts);

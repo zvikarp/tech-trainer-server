@@ -19,6 +19,14 @@ const messages = {
         'success': true,
         'message': 'The operation was successful'
     },
+    USER_PERMISSIONS_ERROR: {
+        'success': false,
+        'message': 'This user does not have permission to do this operation'
+    },
+    ACCOUNTS_NOT_FOUND: {
+        'success': false,
+        'message': 'The accounts settings documents was not found'
+    },
 };
 
 module.exports = messages;
