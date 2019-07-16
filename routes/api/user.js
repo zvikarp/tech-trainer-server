@@ -55,4 +55,24 @@ router.get('/accounts/get', (req, routerRes) => {
 });
 
 
+// @route GET api/user/accounts/get
+// @access User
+// api return if current user is admin or not
+router.get('/admin/get', (req, routerRes) => {
+    verifier(req.headers['token'], (verifierRes) => {
+        console.log(verifierRes);
+        
+        if (!verifierRes.success) {
+            return routerRes.status(400).json(verifierRes);
+        }
+        const uid = verifierRes.id;
+        User.findOne({ _id: uid }).then(user => {
+            if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+            var admin = user.role === 'admin';
+            return routerRes.json({'admin': admin});
+        });
+    });
+});
+
+
 module.exports = router;
