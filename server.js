@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
 const auth = require("./routes/api/auth");
+const chart = require("./routes/api/chart");
 const user = require("./routes/api/user");
 const accounts = require("./routes/api/accounts");
 const cronjob = require("./routes/api/cronjob");
@@ -38,6 +39,7 @@ require("./config/passport")(passport);
 app.use("/api/auth", auth);
 app.use("/api/user", user);
 app.use("/api/accounts", accounts);
+app.use("/api/chart", chart);
 app.use("/api/cronjob", cronjob);
 
 const port = process.env.PORT || 5000;
