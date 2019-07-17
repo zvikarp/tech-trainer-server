@@ -39,7 +39,7 @@ router.post("/register", (req, res) => {
         password: req.body.password
       });
       const newProfile = new Profile({
-        nickname: req.body.nickname,
+        nickname: req.body.name,
         // lastSeen: Date.now,
         // lastEdited: Date.now,
         avatar: avatars[Math.floor(Math.random() * avatars.length)],
