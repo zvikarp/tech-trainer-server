@@ -8,10 +8,10 @@ const User = require("../../models/User");
 const messages = require("../../sheard/messages");
 const validateSettingsInput = require("../../validation/settings");
 
+
 // @route POST api/user/accounts/update
 // @access User
 // api updates the users connected accounts ids.
-// TODO: should have a instructions field on how to get the id from every site.
 router.post('/accounts/update', (req, routerRes) => {
 	verifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
@@ -22,8 +22,10 @@ router.post('/accounts/update', (req, routerRes) => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
 			var accounts = user.accounts;
 			const newAccounts = req.body.accounts;
+			var errorMsg = "";
 			Object.keys(newAccounts).forEach(key => {
 				accounts[key] = newAccounts[key];
+
 			});
 			User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
 				if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
