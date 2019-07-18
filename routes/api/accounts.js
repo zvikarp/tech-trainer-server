@@ -14,6 +14,7 @@ const Settings = require("../../models/Settings");
 // TODO: every account would have a id, so it wount depend on the name.
 // TODO: change the name to something else then accounts and other stuff...
 router.get("/get", (req, routerRes) => {
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
   verifier(req.headers['token'], (verifierRes) => {
     if (!verifierRes.success) {
       return routerRes.status(400).json(verifierRes);

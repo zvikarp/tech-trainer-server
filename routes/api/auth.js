@@ -16,7 +16,7 @@ const User = require("../../models/User");
 // @access Public
 
 router.post("/register", (req, res) => {
-
+	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateRegisterInput(req.body);
 	if (!isValid) {
 		return res.status(400).json(errors);
@@ -48,6 +48,7 @@ router.post("/register", (req, res) => {
 // @desc Login user and return JWT token
 // @access Public
 router.post("/login", (req, res) => {
+	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateLoginInput(req.body);
 	if (!isValid) {
 		return res.status(400).json(errors);

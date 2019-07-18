@@ -62,6 +62,7 @@ function sortUsersByPoints(a, b) {
 }
 
 router.post("/updatepoints", async (req, routerRes) => {
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	verifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
