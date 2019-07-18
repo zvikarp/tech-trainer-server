@@ -13,29 +13,41 @@ const mongoose = require("mongoose");
 const axios = require("axios");
 
 async function getGithubPoints(username) {
-	var res = await axios.get(
-		"https://api.github.com/users/" + username + "/repos"
-	);
-	return res.data.length;
+	try {
+		var res = await axios.get(
+			"https://api.github.com/users/" + username + "/repos"
+		);
+		return res.data.length;
+	} catch (error) {
+		return 0;
+	}
 }
 
 async function getMediumPoints(username) {
 	// the medium api returns a rss not json, so we can convert it on rss2json server:
-	var res = await axios.get(
-		"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
-		username
-	);
-	return res.data.items.length;
+	try {
+		var res = await axios.get(
+			"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
+			username
+		);
+		return res.data.items.length;
+	} catch (error) {
+		return 0;
+	}
 }
 
 async function getStackoverflowPoints(username) {
 	// the medium api returns a rss not json, so we can convert it on rss2json server:
-	var res = await axios.get(
-		"https://api.stackexchange.com/2.2/users/" +
-		username +
-		"?site=stackoverflow"
-	);
-	return res.data.items[0].reputation;
+	try {
+		var res = await axios.get(
+			"https://api.stackexchange.com/2.2/users/" +
+			username +
+			"?site=stackoverflow"
+		);
+		return res.data.items[0].reputation;
+	} catch (error) {
+		return 0;
+	}
 }
 
 async function asyncForEach(array, callback) {
