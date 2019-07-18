@@ -117,7 +117,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 					chart.passed.sort(sortUsersByPoints);
 					chart.under.sort(sortUsersByPoints);
 					chart.top3 = chart.passed.splice(0, 3);
-					await Chart.findOneAndUpdate({ _id: "5d2ed28f1c9d440000552aaa" }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under } }, { upsert: true }).exec();
+					await Chart.findOneAndUpdate({ _id: "5d2ed28f1c9d440000552aaa" }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
 						
 					return routerRes.json({ test: 'success' });
 				});
