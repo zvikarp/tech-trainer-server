@@ -16,9 +16,7 @@ async function getGithubPoints(username) {
 	var res = await axios.get(
 		"https://api.github.com/users/" + username + "/repos"
 	);
-	// console.log("g points " + res.data.length);
 	return res.data.length;
-	// return 6;
 }
 
 async function getMediumPoints(username) {
@@ -28,8 +26,6 @@ async function getMediumPoints(username) {
 		username
 	);
 	return res.data.items.length;
-	// console.log("m points " + res.data.items.length);
-	// return 8;
 }
 
 async function getStackoverflowPoints(username) {
@@ -39,9 +35,7 @@ async function getStackoverflowPoints(username) {
 		username +
 		"?site=stackoverflow"
 	);
-	// console.log("s points " + res.data.items[0].reputation);
 	return res.data.items[0].reputation;
-	// return 12;
 }
 
 async function asyncForEach(array, callback) {
@@ -64,34 +58,37 @@ router.post("/updatepoints", async (req, routerRes) => {
 		return User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
 			if (user.role != "admin") return routerRes.status(400).json(messages.USER_PERMISSIONS_ERROR);
-			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(accounts => {
-				if (!accounts) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
-				const accountsNames = [];
-				Object.keys(accounts.websites).forEach(key => {
-					accountsNames.push(accounts.websites[key].name);
-				});
+			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(recivedAccounts => {
+				if (!recivedAccounts) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
+				// const accountsNames = [];
+				// Object.keys(accounts.websites).forEach(key => {
+				// 	accountsNames.push(accounts.websites[key].name);
+				// });
 				return User.find({}).then(async (users) => {
 					const passingPoints = 50;
 					var chart = {
-						'top3': [], // { id: ID name: NAME, points: POINTS }
+						'top3': [],
 						'passed': [],
 						'under': []
 					};
+					const accounts = recivedAccounts._doc;
 					await asyncForEach(users, async (user) => {
 						user.points = 0;
 						await asyncForEach(Object.keys(user.accounts), async (key) => {
-							if (accountsNames.indexOf(key) < 0);
+							if (!accounts[key]);
+							else if (accounts[key].type !== "website");
+							// if (accountsNames.indexOf(key) < 0);
 							else if (user.accounts[key] == "");
 							else {
-								switch (key) {
+								switch (accounts[key].name) {
 									case "GitHub":
-										user.points = user.points + await getGithubPoints(user.accounts[key]);
+										user.points = user.points + (await getGithubPoints(user.accounts[key]) * accounts[key].points);
 										break;
 									case "Medium":
-										user.points = user.points + await getMediumPoints(user.accounts[key]);
+										user.points = user.points + (await getMediumPoints(user.accounts[key]) * accounts[key].points);
 										break;
 									case "Stackoverflow":
-										user.points = user.points + await getStackoverflowPoints(user.accounts[key]);
+										user.points = user.points + (await getStackoverflowPoints(user.accounts[key]) * accounts[key].points);
 										break;
 									default:
 										user.points += 0;
@@ -117,8 +114,9 @@ router.post("/updatepoints", async (req, routerRes) => {
 					chart.passed.sort(sortUsersByPoints);
 					chart.under.sort(sortUsersByPoints);
 					chart.top3 = chart.passed.splice(0, 3);
+
 					await Chart.findOneAndUpdate({ _id: "5d2ed28f1c9d440000552aaa" }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
-						
+
 					return routerRes.json({ test: 'success' });
 				});
 			});
