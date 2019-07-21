@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
-const verifier = require("../../config/verifier");
+const userVerifier = require("../../config/userVerifier");
 const User = require("../../models/User");
 const Settings = require("../../models/Settings");
 const Chart = require("../../models/Chart");
@@ -63,7 +63,7 @@ function sortUsersByPoints(a, b) {
 
 router.post("/updatepoints", async (req, routerRes) => {
 	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
-	verifier(req.headers["authorization"], verifierRes => {
+	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
 		}
