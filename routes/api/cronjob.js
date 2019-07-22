@@ -71,8 +71,8 @@ router.post("/updatepoints", async (req, routerRes) => {
 		return User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
 			if (user.role != "admin") return routerRes.status(400).json(messages.USER_PERMISSIONS_ERROR);
-			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(recivedAccounts => {
-				if (!recivedAccounts) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
+			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(settings => {
+				if (!settings) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
 				// const accountsNames = [];
 				// Object.keys(accounts.websites).forEach(key => {
 				// 	accountsNames.push(accounts.websites[key].name);
@@ -84,7 +84,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 						'passed': [],
 						'under': []
 					};
-					const accounts = recivedAccounts._doc;
+					const accounts = settings.accounts;
 					await asyncForEach(users, async (user) => {
 						user.points = 0;
 						await asyncForEach(Object.keys(user.accounts), async (key) => {
