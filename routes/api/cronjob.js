@@ -7,6 +7,7 @@ const userVerifier = require("../../config/userVerifier");
 const User = require("../../models/User");
 const Settings = require("../../models/Settings");
 const Chart = require("../../models/Chart");
+const History = require("../../models/History");
 const messages = require("../../sheard/messages");
 const db = require("../../config/keys").mongoURI;
 const mongoose = require("mongoose");
@@ -86,6 +87,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 					};
 					const accounts = settings.accounts;
 					await asyncForEach(users, async (user) => {
+						var userPoints = {};
 						user.points = 0;
 						await asyncForEach(Object.keys(user.accounts), async (key) => {
 							if (!accounts[key]);
@@ -95,13 +97,25 @@ router.post("/updatepoints", async (req, routerRes) => {
 							else {
 								switch (accounts[key].name) {
 									case "GitHub":
-										user.points = user.points + (await getGithubPoints(user.accounts[key]) * accounts[key].points);
+										const githubPoints = (await getGithubPoints(user.accounts[key]) * accounts[key].points);
+										user.points = user.points + githubPoints;
+										if (githubPoints > 0) {
+											userPoints.github = githubPoints;
+										}
 										break;
 									case "Medium":
-										user.points = user.points + (await getMediumPoints(user.accounts[key]) * accounts[key].points);
+										const mediumPoints = (await getMediumPoints(user.accounts[key]) * accounts[key].points);
+										user.points = user.points + mediumPoints;
+										if (mediumPoints > 0) {
+											userPoints.medium = mediumPoints;
+										}
 										break;
 									case "Stackoverflow":
-										user.points = user.points + (await getStackoverflowPoints(user.accounts[key]) * accounts[key].points);
+										const stackoverflowPoints = (await getStackoverflowPoints(user.accounts[key]) * accounts[key].points);
+										user.points = user.points + stackoverflowPoints;
+										if (stackoverflowPoints > 0) {
+											userPoints.stackoverflow = stackoverflowPoints;
+										}
 										break;
 									default:
 										user.points += 0;
@@ -113,6 +127,15 @@ router.post("/updatepoints", async (req, routerRes) => {
 							{ _id: user.id },
 							{ $set: { points: user.points } }
 						).exec();
+						const userHistory = new History({
+							userId: user.id,
+							history: {
+								timestamp: Date.now(),
+								points: user.points,
+								accounts: userPoints,
+							},
+						});						
+						await userHistory.save();
 						userObject = {
 							'id': user.id,
 							'name': user.name,
