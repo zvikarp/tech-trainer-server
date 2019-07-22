@@ -7,6 +7,7 @@ const chart = require("./routes/api/chart");
 const user = require("./routes/api/user");
 const accounts = require("./routes/api/accounts");
 const cronjob = require("./routes/api/cronjob");
+const history = require("./routes/api/history");
 const app = express();
 
 // Bodyparser middleware
@@ -49,6 +50,7 @@ app.use("/api/user", user);
 app.use("/api/accounts", accounts);
 app.use("/api/chart", chart);
 app.use("/api/cronjob", cronjob);
+app.use("/api/history", history);
 
 
 const port = process.env.PORT || 5000;

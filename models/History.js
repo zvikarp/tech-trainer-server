@@ -6,10 +6,8 @@ const HistorySchema = new Schema({
 		type: String,
 		required: true
 	},
-	history: {
-			timestamp: Date,
-			points: Number,
-			accounts: Schema.Types.Mixed
-		},
+	timestamp: Date,
+	points: Number,
+	accounts: Schema.Types.Mixed
 });
 module.exports = History = mongoose.model("History", HistorySchema);

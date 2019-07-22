@@ -129,12 +129,10 @@ router.post("/updatepoints", async (req, routerRes) => {
 						).exec();
 						const userHistory = new History({
 							userId: user.id,
-							history: {
-								timestamp: Date.now(),
-								points: user.points,
-								accounts: userPoints,
-							},
-						});						
+							timestamp: Date.now(),
+							points: user.points,
+							accounts: userPoints,
+						});
 						await userHistory.save();
 						userObject = {
 							'id': user.id,
