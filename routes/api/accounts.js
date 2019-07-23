@@ -12,7 +12,7 @@ const validateAccounts = require("../../validation/accounts");
 // @access Authed
 // api returns all types of accounts
 router.get("/get", (req, routerRes) => {
-	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
@@ -31,7 +31,7 @@ router.get("/get", (req, routerRes) => {
 // @access Admin
 // api updates the accounts info
 router.post("/update", (req, routerRes) => {
-	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	adminVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
