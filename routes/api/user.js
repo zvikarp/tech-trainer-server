@@ -5,6 +5,14 @@ const adminVerifier = require("../../config/adminVerifier");
 const User = require("../../models/User");
 const messages = require("../../sheard/messages");
 const validateSettingsInput = require("../../validation/settings");
+const validateWebsites = require("../../validation/websites");
+
+
+async function asyncForEach(array, callback) {
+	for (let index = 0; index < array.length; index++) {
+		await callback(array[index], index, array);
+	}
+}
 
 
 // @route POST api/user/accounts/update
@@ -17,18 +25,36 @@ router.post('/accounts/update', (req, routerRes) => {
 			return routerRes.status(400).json(verifierRes);
 		}
 		const uid = verifierRes.id;
+		var lastError;
 		User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-			var accounts = user.accounts;
-			const newAccounts = req.body.accounts;
-			var errorMsg = "";
-			Object.keys(newAccounts).forEach(key => {
-				accounts[key] = newAccounts[key];
-
-			});
-			User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
-				if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-				return routerRes.json(messages.GENERAL_SUCCESS);
+			Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(async (settings) => {
+				if (!settings) routerRes.status(400).json(messages.UNKNOWN_ERROR);
+				var serverAccounts = settings.accounts;
+				var accounts = user.accounts;
+				const newAccounts = req.body.accounts;
+				var errorMsg = "";
+				await asyncForEach(Object.keys(newAccounts), async (key) => {
+				// await Object.keys(newAccounts).forEach(async (key) => {
+					if (serverAccounts[key]) {
+						if ((newAccounts[key] !== "") && (serverAccounts[key].type === "website")) {
+							const { errors, isValid } = await validateWebsites(serverAccounts[key].name, newAccounts[key]);
+							
+							if (!isValid) {
+								lastError = errors;
+							}
+						}
+						accounts[key] = newAccounts[key];
+					}
+				});
+				if (lastError) {
+					return routerRes.json({message: lastError});
+				} else {
+					User.findOneAndUpdate({ _id: uid }, { $set: { accounts: accounts } }, { upsert: false }).then(user => {
+						if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+						return routerRes.json(messages.GENERAL_SUCCESS);
+					});
+				}
 			});
 		});
 	});

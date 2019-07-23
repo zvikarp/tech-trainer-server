@@ -54,7 +54,6 @@ router.post("/update", (req, routerRes) => {
 						}
 						const { errors, isValid } = validateAccounts(oldAccount, account);
 						if (!isValid) {
-							console.log(errors);
 							hasErrors = true;
 						}
 						if (account.action === "delete") {
@@ -67,7 +66,6 @@ router.post("/update", (req, routerRes) => {
 					if (hasErrors) return routerRes.status(400).json("errors");
 					Settings.findOneAndUpdate({ _id: "5d2b22ac1c9d4400006d66ef" }, { $set: { accounts: serverAccounts } }, { upsert: true }).then(u => {
 
-						console.log("all done!");
 						return routerRes.json(serverAccounts)
 
 					}).catch(err => {
