@@ -87,9 +87,13 @@ router.get('/get', (req, routerRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
 		}
-		const uid = verifierRes.id;
+		var uid = verifierRes.id;
+		if (req.headers['userid']) {
+			uid = req.headers['userid'];
+		}
 		User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+			user.password = undefined;			
 			return routerRes.json({user});
 		});
 	});

@@ -13,10 +13,13 @@ router.get('/get', (req, routerRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
 		}
-		const uid = verifierRes.id;
-		History.find({ userId: uid }).sort({timestamp: 'desc'}).then(history => {
-			console.log(history);
-			
+		var uid = verifierRes.id;
+		console.log(req.headers);
+		
+		if (req.headers['userid']) {
+			uid = req.headers['userid'];
+		}
+		History.find({ userId: uid }).sort({timestamp: 'desc'}).then(history => {			
 			return routerRes.json(history);
 		});
 	});
