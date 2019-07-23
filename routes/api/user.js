@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const keys = require("../../config/keys");
 const userVerifier = require("../../config/userVerifier");
+const adminVerifier = require("../../config/adminVerifier");
 const User = require("../../models/User");
 const messages = require("../../sheard/messages");
 const validateSettingsInput = require("../../validation/settings");
@@ -89,13 +87,25 @@ router.get('/get', (req, routerRes) => {
 		}
 		var uid = verifierRes.id;
 		if (req.headers['userid']) {
-			uid = req.headers['userid'];
+			adminVerifier(req.headers['authorization'], (verifierRes) => {
+				if (!verifierRes.success) {
+					return routerRes.status(400).json(verifierRes);
+				} else {
+					uid = req.headers['userid'];
+					User.findOne({ _id: uid }).then(user => {
+						if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+						user.password = undefined;
+						return routerRes.json({ user });
+					});
+				}
+			});
+		} else {
+			User.findOne({ _id: uid }).then(user => {
+				if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+				user.password = undefined;
+				return routerRes.json({ user });
+			});
 		}
-		User.findOne({ _id: uid }).then(user => {
-			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-			user.password = undefined;			
-			return routerRes.json({user});
-		});
 	});
 });
 
