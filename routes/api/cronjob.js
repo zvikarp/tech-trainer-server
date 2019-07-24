@@ -79,7 +79,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 					const accounts = settings.accounts;
 					await asyncForEach(users, async (user) => {
 						var userPoints = {};
-						user.points = 0;
+						user.points = 0;						
 						await asyncForEach(Object.keys(user.accounts), async (key) => {
 							if (!accounts[key]);
 							else if (accounts[key].type !== "website");
@@ -118,6 +118,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 							{ _id: user.id },
 							{ $set: { points: user.points } }
 						).exec();
+						user.points +=  user.bonusPoints;
 						const userHistory = new History({
 							userId: user.id,
 							timestamp: Date.now(),
