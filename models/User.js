@@ -14,10 +14,6 @@ const UserSchema = new Schema({
 		type: String,
 		required: true
 	},
-	chats: {
-		type: [String],
-		default: []
-	},
 	accounts: {
 		type: Object,
 		default: {}
@@ -27,6 +23,10 @@ const UserSchema = new Schema({
 		default: 'user'
 	},
 	points: {
+		type: Number,
+		default: 0
+	},
+	bonusPoints: {
 		type: Number,
 		default: 0
 	},
