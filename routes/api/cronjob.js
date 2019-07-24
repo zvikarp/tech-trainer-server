@@ -6,64 +6,71 @@ const Settings = require("../../models/Settings");
 const Chart = require("../../models/Chart");
 const History = require("../../models/History");
 const messages = require("../../sheard/messages");
+const documents = require("../../sheard/documents");
 const axios = require("axios");
 
+
+// gets the users repos from github via APIs
 async function getGithubPoints(username) {
 	try {
-		var res = await axios.get(
-			"https://api.github.com/users/" + username + "/repos"
-		);
+		var res = await axios.get("https://api.github.com/users/" + username + "/repos");
 		return res.data.length;
 	} catch (error) {
 		return 0;
 	}
 }
 
+// gets the users articels from medium via APIs
 async function getMediumPoints(username) {
-	// the medium api returns a rss not json, so we can convert it on rss2json server:
 	try {
-		var res = await axios.get(
-			"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
-			username
-		);
+		var res = await axios.get("https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" + username);
 		return res.data.items.length;
 	} catch (error) {
 		return 0;
 	}
 }
 
+// gets the users points from stackoverflow via APIs
 async function getStackoverflowPoints(username) {
-	// the medium api returns a rss not json, so we can convert it on rss2json server:
 	try {
-		var res = await axios.get(
-			"https://api.stackexchange.com/2.2/users/" +
-			username +
-			"?site=stackoverflow"
-		);
+		var res = await axios.get("https://api.stackexchange.com/2.2/users/" + username + "?site=stackoverflow");
 		return res.data.items[0].reputation;
 	} catch (error) {
 		return 0;
 	}
 }
 
+// converts a `forEach` function to a async one
 async function asyncForEach(array, callback) {
 	for (let index = 0; index < array.length; index++) {
 		await callback(array[index], index, array);
 	}
 }
 
+// sort by points of user in array
 function sortUsersByPoints(a, b) {
 	if (a.points > b.points) return -1;
 	return 1;
 }
 
+// remove user by id from array
+	function removeUserFromArrayById(array, id) {
+		return array.filter(function (child) {
+			return child.id !== id;
+		});
+	}
+
 async function getUsersPoints(user, accounts) {
+
 	var userPoints = {};
 	user.points = 0;
+
 	await asyncForEach(Object.keys(user.accounts), async (key) => {
+
 		if (!accounts[key]);
 		else if (accounts[key].type !== "website");
 		else if (user.accounts[key] == "");
+
 		else {
 			switch (accounts[key].name) {
 				case "GitHub":
@@ -93,6 +100,7 @@ async function getUsersPoints(user, accounts) {
 			}
 		}
 	});
+	
 	await User.findOneAndUpdate(
 		{ _id: user.id },
 		{ $set: { points: user.points } }
@@ -113,7 +121,7 @@ async function getUsersPoints(user, accounts) {
 }
 
 router.post("/updatepoints", async (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
@@ -122,7 +130,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 		return User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
 			if (user.role != "admin") return routerRes.status(400).json(messages.USER_PERMISSIONS_ERROR);
-			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(settings => {
+			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 				if (!settings) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
 				return User.find({}).then(async (users) => {
 					const passingPoints = 50;
@@ -144,7 +152,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 					chart.under.sort(sortUsersByPoints);
 					chart.top3 = chart.passed.splice(0, 3);
 
-					await Chart.findOneAndUpdate({ _id: "5d2ed28f1c9d440000552aaa" }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
+					await Chart.findOneAndUpdate({ _id: documents.CHART }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
 
 					return routerRes.json({ test: 'success' });
 				});
@@ -154,7 +162,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 });
 
 router.post("/updateuserspoints", async (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
@@ -162,8 +170,8 @@ router.post("/updateuserspoints", async (req, routerRes) => {
 		const uid = verifierRes.id;
 		return User.findOne({ _id: uid }).then(user => {
 			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-			return Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(settings => {
-				return Chart.findOne({ _id: "5d2ed28f1c9d440000552aaa" }).then(async (recivedChart) => {
+			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
+				return Chart.findOne({ _id: documents.CHART }).then(async (recivedChart) => {
 					if (!settings) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
 					const passingPoints = 50;
 					var chart = {
@@ -171,12 +179,8 @@ router.post("/updateuserspoints", async (req, routerRes) => {
 						'passed': [...recivedChart.top3, ...recivedChart.passed],
 						'under': recivedChart.under,
 					};
-					chart.passed = chart.passed.filter(function (child) {
-						return child.id !== uid;
-					});
-					chart.under = chart.under.filter(function (child) {
-						return child.id !== uid;
-					});
+					chart.passed = removeUserFromArrayById(chart.passed, uid);
+					chart.under = removeUserFromArrayById(chart.under, uid);
 					const accounts = settings.accounts;
 					const userObject = await getUsersPoints(user, accounts);
 					if (user.points > passingPoints) {
@@ -187,9 +191,7 @@ router.post("/updateuserspoints", async (req, routerRes) => {
 					chart.passed.sort(sortUsersByPoints);
 					chart.under.sort(sortUsersByPoints);
 					chart.top3 = chart.passed.splice(0, 3);
-
-					await Chart.findOneAndUpdate({ _id: "5d2ed28f1c9d440000552aaa" }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
-
+					await Chart.findOneAndUpdate({ _id: documents.CHART }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
 					return routerRes.json({ test: 'success' });
 				});
 			});

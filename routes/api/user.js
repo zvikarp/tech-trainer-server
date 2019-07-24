@@ -4,6 +4,7 @@ const userVerifier = require("../../config/userVerifier");
 const adminVerifier = require("../../config/adminVerifier");
 const User = require("../../models/User");
 const messages = require("../../sheard/messages");
+const documents = require("../../sheard/documents");
 const validateSettingsInput = require("../../validation/settings");
 const validateWebsites = require("../../validation/websites");
 
@@ -19,7 +20,7 @@ async function asyncForEach(array, callback) {
 // @access User
 // api updates the users connected accounts ids.
 router.post('/accounts/update', (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
@@ -44,7 +45,7 @@ function updateUserAccounts(userId, routerRes, newAccounts) {
 	var lastError;
 			User.findOne({ _id: userId }).then(user => {
 				if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-				Settings.findOne({ _id: "5d2b22ac1c9d4400006d66ef" }).then(async (settings) => {
+				Settings.findOne({ _id: documents.ACCOUNTS }).then(async (settings) => {
 					if (!settings) routerRes.status(400).json(messages.UNKNOWN_ERROR);
 					var serverAccounts = settings.accounts;
 					var accounts = user.accounts;
@@ -76,7 +77,7 @@ function updateUserAccounts(userId, routerRes, newAccounts) {
 // @access User
 // api gets all users active connected accounts details.
 router.get('/accounts/get', (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 
 		if (!verifierRes.success) {
@@ -110,7 +111,7 @@ function accountsGet(userId, routerRes) {
 // @access User
 // api return if current user is admin or not
 router.get('/admin/get', (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 
 		if (!verifierRes.success) {
@@ -130,7 +131,7 @@ router.get('/admin/get', (req, routerRes) => {
 // @access User
 // api return current user detailes
 router.get('/get', (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 
 		if (!verifierRes.success) {
@@ -165,7 +166,7 @@ function userGet(userId, routerRes) {
 // @access User
 // api updates the users settings.
 router.post('/settings/update', (req, routerRes) => {
-	//routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(400).json(verifierRes);
