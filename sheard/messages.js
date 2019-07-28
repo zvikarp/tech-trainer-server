@@ -23,9 +23,9 @@ const messages = {
 		'success': false,
 		'message': 'This user does not have permission to do this operation'
 	},
-	ACCOUNTS_NOT_FOUND: {
+	DOCUMENT_NOT_FOUND: {
 		'success': false,
-		'message': 'The accounts settings documents was not found'
+		'message': 'The document was not found'
 	},
 };
 

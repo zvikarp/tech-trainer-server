@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
+
 const userVerifier = require("../../config/userVerifier");
 const User = require("../../models/User");
 const Settings = require("../../models/Settings");
@@ -7,7 +9,7 @@ const Chart = require("../../models/Chart");
 const History = require("../../models/History");
 const messages = require("../../sheard/messages");
 const documents = require("../../sheard/documents");
-const axios = require("axios");
+const statusCodes = require("../../sheard/statusCodes");
 
 
 // gets the users repos from github via APIs
@@ -120,18 +122,22 @@ async function getUsersPoints(user, accounts) {
 	};
 }
 
+
+// route:  POST api/cronjob/updatepoints
+// access: Admin
+// desc:   api re-calcs the top chart
 router.post("/updatepoints", async (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
-			return routerRes.status(400).json(verifierRes);
+			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
 		}
 		const uid = verifierRes.id;
 		return User.findOne({ _id: uid }).then(user => {
-			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
-			if (user.role != "admin") return routerRes.status(400).json(messages.USER_PERMISSIONS_ERROR);
+			if (!user) return routerRes.status(statusCodes.BAD_REQUEST).json(messages.USER_NOT_FOUND_ERROR);
+			if (user.role != "admin") return routerRes.status(statusCodes.FORBIDDEN).json(messages.USER_PERMISSIONS_ERROR);
 			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
-				if (!settings) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
+				if (!settings) return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 				return User.find({}).then(async (users) => {
 					const passingPoints = 50;
 					var chart = {
@@ -161,18 +167,21 @@ router.post("/updatepoints", async (req, routerRes) => {
 	});
 });
 
+// route:  POST api/cronjob/updateuserpoints
+// access: User
+// desc:   api re-calcs the top chart by just calculating one user
 router.post("/updateuserspoints", async (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
-			return routerRes.status(400).json(verifierRes);
+			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
 		}
 		const uid = verifierRes.id;
 		return User.findOne({ _id: uid }).then(user => {
-			if (!user) return routerRes.status(400).json(messages.USER_NOT_FOUND_ERROR);
+			if (!user) return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
 			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 				return Chart.findOne({ _id: documents.CHART }).then(async (recivedChart) => {
-					if (!settings) return routerRes.status(400).json(messages.ACCOUNTS_NOT_FOUND);
+					if (!settings) return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 					const passingPoints = 50;
 					var chart = {
 						'top3': [],

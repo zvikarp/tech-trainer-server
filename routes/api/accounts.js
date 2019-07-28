@@ -1,38 +1,42 @@
 const express = require("express");
 const router = express.Router();
+
 const userVerifier = require("../../config/userVerifier");
 const adminVerifier = require("../../config/adminVerifier");
 const Settings = require("../../models/Settings");
 const validateAccounts = require("../../validation/accounts");
 const documents = require("../../sheard/documents");
+const messages = require("../../sheard/messages");
+const statusCodes = require("../../sheard/statusCodes");
 
-// @route GET api/accounts/get
-// @access Authed
-// api returns all types of accounts
+
+// route:  GET api/accounts/get
+// access: Authed
+// desc:   api returns all types of accounts
 router.get("/get", (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 		if (!verifierRes.success) {
-			return routerRes.status(400).json(verifierRes);
+			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
 		}
 		Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 			if (settings) {
 				return routerRes.json(settings.accounts)
 			} else {
-				return routerRes.status(400).json({ accounts: "invalid request" });
+				return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 			}
 		});
 	});
 });
 
-// @route POST api/accounts/update
-// @access Admin
-// api updates the accounts info
+// route:  POST api/accounts/update
+// access: Admin
+// desc:   api updates the accounts info
 router.post("/update", (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	adminVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
-			return routerRes.status(400).json(verifierRes);
+			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
 		} else {
 			Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 				if (settings) {
@@ -70,7 +74,7 @@ router.post("/update", (req, routerRes) => {
 						console.log(err);
 					});
 				} else {
-					// return routerRes.status(400).json({ accounts: "invalid request" });
+					return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 				}
 			});
 		}
