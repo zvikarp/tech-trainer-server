@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const keys = require("./keys");
-const messages = require("../sheard/messages")
+const keys = require("../config/keys");
+const messages = require("../consts/messages")
 
 // the token validator function
 // return the user object with `success = true` if able to validate token
@@ -12,7 +12,7 @@ module.exports = function (token, callback) {
         if (token.startsWith('Bearer ')) {
             token = token.slice(7, token.length);
         }
-        jwt.verify(token, keys.secretOrKey, (err, decoded) => {
+        jwt.verify(token, keys.key, (err, decoded) => {
             if (err) {
                 return callback(messages.TOKEN_NOT_VALID_ERROR);
             }

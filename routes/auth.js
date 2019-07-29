@@ -3,12 +3,12 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const keys = require("../../config/keys");
-const User = require("../../models/User");
-const validateRegisterInput = require("../../validation/register");
-const validateLoginInput = require("../../validation/login");
-const messages = require("../../sheard/messages");
-const statusCodes = require("../../sheard/statusCodes");
+const keys = require("../config/keys");
+const User = require("../models/User");
+const validateRegisterInput = require("../utils/validation/register");
+const validateLoginInput = require("../utils/validation/login");
+const messages = require("../consts/messages");
+const statusCodes = require("../consts/statusCodes");
 
 // route:  POST api/auth/register
 // access: Public
@@ -66,7 +66,7 @@ router.post("/login", (req, res) => {
 				};
 				jwt.sign(
 					payload,
-					keys.secretOrKey,
+					keys.key,
 					{
 						expiresIn: 31556926 // 1 year in seconds
 					},

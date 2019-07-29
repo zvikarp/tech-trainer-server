@@ -2,12 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
-const auth = require("./routes/api/auth");
-const chart = require("./routes/api/chart");
-const user = require("./routes/api/user");
-const accounts = require("./routes/api/accounts");
-const cronjob = require("./routes/api/cronjob");
-const history = require("./routes/api/history");
+const auth = require("./routes/auth");
+const chart = require("./routes/chart");
+const user = require("./routes/user");
+const accounts = require("./routes/accounts");
+const cronjob = require("./routes/cronjob");
+const history = require("./routes/history");
 const app = express();
 
 // Bodyparser middleware
@@ -19,12 +19,12 @@ app.use(
 app.use(bodyParser.json());
 
 // DB Config
-const db = require("./config/keys").mongoURI;
+const mongoURI = require("./config/keys").mongoURI;
 
 // Connect to MongoDB
 mongoose
 	.connect(
-		db,
+		mongoURI,
 		{ useNewUrlParser: true }
 	)
 	.then(() => console.log("MongoDB successfully connected"))
@@ -34,6 +34,7 @@ mongoose.Promise = global.Promise;
 
 app.use(function (req, res, next) {
 	res.header("Access-Control-Allow-Origin", 'https://naughty-villani-d0f667.netlify.com');
+	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	res.header("Access-Control-Allow-Credentials", true);
 	res.header('Access-Control-Allow-Methods', '*');
 	res.header("Access-Control-Allow-Headers", '*');
@@ -42,7 +43,7 @@ app.use(function (req, res, next) {
 
 // Passport middleware
 app.use(passport.initialize());
-require("./config/passport")(passport);
+require("./utils/passport")(passport);
 
 // Routes
 app.use("/api/auth", auth);

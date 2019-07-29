@@ -2,14 +2,14 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
-const userVerifier = require("../../config/userVerifier");
-const User = require("../../models/User");
-const Settings = require("../../models/Settings");
-const Chart = require("../../models/Chart");
-const History = require("../../models/History");
-const messages = require("../../sheard/messages");
-const documents = require("../../sheard/documents");
-const statusCodes = require("../../sheard/statusCodes");
+const userVerifier = require("../utils/userVerifier");
+const User = require("../models/User");
+const Settings = require("../models/Settings");
+const Chart = require("../models/Chart");
+const History = require("../models/History");
+const messages = require("../consts/messages");
+const documents = require("../consts/documents");
+const statusCodes = require("../consts/statusCodes");
 
 
 // gets the users repos from github via APIs
@@ -127,7 +127,7 @@ async function getUsersPoints(user, accounts) {
 // access: Admin
 // desc:   api re-calcs the top chart
 router.post("/updatepoints", async (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
@@ -171,7 +171,7 @@ router.post("/updatepoints", async (req, routerRes) => {
 // access: User
 // desc:   api re-calcs the top chart by just calculating one user
 router.post("/updateuserspoints", async (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers["authorization"], verifierRes => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);

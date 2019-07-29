@@ -1,3 +1,1 @@
-# want them to be uploaded to git
-# node_modules/
-# config/key.js
+/node_modules

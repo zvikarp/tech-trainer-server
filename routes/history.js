@@ -1,16 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const userVerifier = require("../../config/userVerifier");
-const adminVerifier = require("../../config/adminVerifier");
-const History = require("../../models/History");
-const statusCodes = require("../../sheard/statusCodes");
+const userVerifier = require("../utils/userVerifier");
+const adminVerifier = require("../utils/adminVerifier");
+const History = require("../models/History");
+const statusCodes = require("../consts/statusCodes");
 
 // route:  GET api/history/get
 // access: User/Admin
 // desc:   api gets user history
 router.get('/get', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 
 		if (!verifierRes.success) {

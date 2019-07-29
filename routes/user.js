@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const userVerifier = require("../../config/userVerifier");
-const adminVerifier = require("../../config/adminVerifier");
-const validateSettingsInput = require("../../validation/settings");
-const validateWebsites = require("../../validation/websites");
-const User = require("../../models/User");
-const messages = require("../../sheard/messages");
-const documents = require("../../sheard/documents");
-const statusCodes = require("../../sheard/statusCodes");
+const userVerifier = require("../utils/userVerifier");
+const adminVerifier = require("../utils/adminVerifier");
+const validateSettingsInput = require("../utils/validation/settings");
+const validateWebsites = require("../utils/validation/websites");
+const User = require("../models/User");
+const messages = require("../consts/messages");
+const documents = require("../consts/documents");
+const statusCodes = require("../consts/statusCodes");
 
 // converts a `forEach` function to a async one
 async function asyncForEach(array, callback) {
@@ -22,7 +22,7 @@ async function asyncForEach(array, callback) {
 // access: User
 // desc:   api updates the users connected accounts.
 router.post('/accounts/update', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
@@ -79,7 +79,7 @@ function updateUserAccounts(userId, routerRes, newAccounts) {
 // access: User
 // desc:   api gets the users connected accounts.
 router.get('/accounts/get', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 
 		if (!verifierRes.success) {
@@ -113,7 +113,7 @@ function accountsGet(userId, routerRes) {
 // access: User
 // desc:   api return if current user is admin or not
 router.get('/admin/get', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.BAD_REQUEST).json(verifierRes);
@@ -132,7 +132,7 @@ router.get('/admin/get', (req, routerRes) => {
 // access: User/Admin
 // desc:   api return current user detailes
 router.get('/get', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
@@ -166,7 +166,7 @@ function userGet(userId, routerRes) {
 // access: User/Admin
 // desc:   api updates the users settings.
 router.post('/settings/update', (req, routerRes) => {
-	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
