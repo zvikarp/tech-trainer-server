@@ -115,7 +115,6 @@ function accountsGet(userId, routerRes) {
 router.get('/admin/get', (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
-
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.BAD_REQUEST).json(verifierRes);
 		}
@@ -135,7 +134,6 @@ router.get('/admin/get', (req, routerRes) => {
 router.get('/get', (req, routerRes) => {
 	routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
-
 		if (!verifierRes.success) {
 			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
 		}
@@ -197,8 +195,6 @@ function updateUserSettings(userId, req, routerRes, isAdmin) {
 		var bonusPoints = user.bonusPoints;
 		if (req.body.name) userName = req.body.name;
 		if (req.body.email) userEmail = req.body.email;
-		console.log(req.body.bonusPoints);
-
 		if (isAdmin && req.body.bonusPoints) bonusPoints = req.body.bonusPoints;
 		const { errors, isValid } = validateSettingsInput(req.body);
 		if (!isValid) {
