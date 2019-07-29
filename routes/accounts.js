@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const HttpStatus = require('http-status-codes');
 
 const userVerifier = require("../utils/userVerifier");
 const adminVerifier = require("../utils/adminVerifier");
@@ -7,23 +7,22 @@ const Settings = require("../models/Settings");
 const validateAccounts = require("../utils/validation/accounts");
 const documents = require("../consts/documents");
 const messages = require("../consts/messages");
-const statusCodes = require("../consts/statusCodes");
 
+const router = express.Router();
 
 // route:  GET api/accounts/get
 // access: Authed
 // desc:   api returns all types of accounts
 router.get("/get", (req, routerRes) => {
-	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	userVerifier(req.headers['token'], (verifierRes) => {
 		if (!verifierRes.success) {
-			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
+			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
 		}
 		Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 			if (settings) {
 				return routerRes.json(settings.accounts)
 			} else {
-				return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
+				return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 			}
 		});
 	});
@@ -33,10 +32,9 @@ router.get("/get", (req, routerRes) => {
 // access: Admin
 // desc:   api updates the accounts info
 router.post("/update", (req, routerRes) => {
-	// routerRes.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	adminVerifier(req.headers['authorization'], (verifierRes) => {
 		if (!verifierRes.success) {
-			return routerRes.status(statusCodes.FORBIDDEN).json(verifierRes);
+			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
 		} else {
 			Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
 				if (settings) {
@@ -74,7 +72,7 @@ router.post("/update", (req, routerRes) => {
 						console.log(err);
 					});
 				} else {
-					return routerRes.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
+					return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
 				}
 			});
 		}

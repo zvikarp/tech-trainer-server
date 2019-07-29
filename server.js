@@ -2,12 +2,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const passport = require("passport");
+
 const auth = require("./routes/auth");
 const chart = require("./routes/chart");
 const user = require("./routes/user");
 const accounts = require("./routes/accounts");
 const cronjob = require("./routes/cronjob");
 const history = require("./routes/history");
+const config = require("./config/config");
+
 const app = express();
 
 // Bodyparser middleware
@@ -19,7 +22,7 @@ app.use(
 app.use(bodyParser.json());
 
 // DB Config
-const mongoURI = require("./config/keys").mongoURI;
+const mongoURI = require("./config/config").mongoURI;
 
 // Connect to MongoDB
 mongoose
@@ -33,11 +36,11 @@ mongoose.set('useFindAndModify', false);
 mongoose.Promise = global.Promise;
 
 app.use(function (req, res, next) {
-	res.header("Access-Control-Allow-Origin", 'https://naughty-villani-d0f667.netlify.com');
-	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
+	res.header("Access-Control-Allow-Origin", config.origin);
+	res.setHeader('Access-Control-Allow-Origin', config.origin);
 	res.header("Access-Control-Allow-Credentials", true);
-	res.header('Access-Control-Allow-Methods', '*');
-	res.header("Access-Control-Allow-Headers", '*');
+	res.header('Access-Control-Allow-Methods', config.origin);
+	res.header("Access-Control-Allow-Headers", config.origin);
 	next();
 });
 
@@ -54,5 +57,4 @@ app.use("/api/cronjob", cronjob);
 app.use("/api/history", history);
 
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => console.log(`Server up and running on port ${port} !`));
+app.listen(config.port, () => console.log(`Server up and running on port ${config.port} !`));

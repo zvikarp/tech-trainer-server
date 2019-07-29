@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const keys = require("../config/keys");
+const config = require("../config/config");
 const messages = require("../consts/messages")
 const User = require("../models/User");
 
@@ -13,7 +13,7 @@ module.exports = function (token, callback) {
         if (token.startsWith('Bearer ')) {
             token = token.slice(7, token.length);
         }
-        jwt.verify(token, keys.key, (err, decoded) => {
+        jwt.verify(token, config.key, (err, decoded) => {
             if (err) {
                 return callback(messages.TOKEN_NOT_VALID_ERROR);
 						}

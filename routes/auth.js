@@ -1,14 +1,16 @@
 const express = require("express");
-const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const HttpStatus = require('http-status-codes');
 
-const keys = require("../config/keys");
+const config = require("../config/config");
 const User = require("../models/User");
 const validateRegisterInput = require("../utils/validation/register");
 const validateLoginInput = require("../utils/validation/login");
 const messages = require("../consts/messages");
-const statusCodes = require("../consts/statusCodes");
+
+const router = express.Router();
+
 
 // route:  POST api/auth/register
 // access: Public
@@ -17,11 +19,11 @@ router.post("/register", (req, res) => {
 	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateRegisterInput(req.body);
 	if (!isValid) {
-		return res.status(statusCodes.FORBIDDEN).json(errors);
+		return res.status(HttpStatus.FORBIDDEN).json(errors);
 	}
 	User.findOne({ email: req.body.email }).then(user => {
 		if (user) {
-			return res.status(statusCodes.BAD_REQUEST).json({ email: "Email already exists" });
+			return res.status(HttpStatus.BAD_REQUEST).json({ email: "Email already exists" });
 		} else {
 			const newUser = new User({
 				name: req.body.name,
@@ -35,7 +37,7 @@ router.post("/register", (req, res) => {
 					newUser.password = hash;
 					newUser.save()
 						.then(user => {res.json(user);})
-						.catch(err => {res.status(statusCodes.INTERNAL_SERVER_ERROR).json(messages.UNKNOWN_ERROR)});
+						.catch(err => {res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.UNKNOWN_ERROR)});
 				});
 			});
 		}
@@ -50,13 +52,13 @@ router.post("/login", (req, res) => {
 	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateLoginInput(req.body);
 	if (!isValid) {
-		return res.status(statusCodes.FORBIDDEN).json(errors);
+		return res.status(HttpStatus.FORBIDDEN).json(errors);
 	}
 	const email = req.body.email;
 	const password = req.body.password;
 	User.findOne({ email }).then(user => {
 		if (!user) {
-			return res.status(statusCodes.BAD_REQUEST).json({ emailnotfound: "Email not found" });
+			return res.status(HttpStatus.BAD_REQUEST).json({ emailnotfound: "Email not found" });
 		}
 		bcrypt.compare(password, user.password).then(isMatch => {
 			if (isMatch) {
@@ -66,7 +68,7 @@ router.post("/login", (req, res) => {
 				};
 				jwt.sign(
 					payload,
-					keys.key,
+					config.key,
 					{
 						expiresIn: 31556926 // 1 year in seconds
 					},
@@ -78,7 +80,7 @@ router.post("/login", (req, res) => {
 					}
 				);
 			} else {
-				return res.status(statusCodes.BAD_REQUEST).json({ passwordincorrect: "Password incorrect" });
+				return res.status(HttpStatus.BAD_REQUEST).json({ passwordincorrect: "Password incorrect" });
 			}
 		});
 	});
