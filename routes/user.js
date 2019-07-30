@@ -20,7 +20,7 @@ async function asyncForEach(array, callback) {
 	}
 }
 
-// route:  POST api/user/accounts/:id
+// route:  PUT api/user/accounts/:id
 // access: User
 // desc:   api updates the users connected accounts.
 router.put('/accounts/:id', async (req, res) => {
@@ -73,56 +73,40 @@ async function updateUserAccounts(userId, newAccounts) {
 	await mongodbUser.putAccounts(userId, updatedAccounts);
 }
 
-// route:  POST api/user/accounts/get
-// access: User
+// route:  GET api/user/accounts/:id
+// access: User/Admin
 // desc:   api gets the users connected accounts.
-router.get('/accounts/get', (req, res) => {
-	userVerifier(req.headers['token'], (verifierRes) => {
-
-		if (!verifierRes.success) {
-			return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		var uid = verifierRes.id;
-		// if ((req.headers['userid']) && (req.headers['userid'] != "undefined") && (req.headers['userid'] != undefined)) {
-		// 	adminVerifier(req.headers['authorization'], (verifierRes) => {
-		// 		if (!verifierRes.success) {
-		// 			return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		// 		} else {
-		// 			uid = req.headers['userid'];
-		// 			return accountsGet(uid, res);
-		// 		}
-		// 	});
-		// } else {
-			return accountsGet(uid, res);
-		// }
-	});
+router.get('/accounts/:id', async (req, res) => {
+	try {
+		const user = await verifier.user(req.headers['token']);
+		const userId = req.params.id;
+		if (user.id !== userId) await verifier.admin(user.id);
+		const userFromDatabase = await mongodbUser.get(userId);
+		const userAccounts = userFromDatabase.accounts;
+		return res.json(userAccounts);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
 
-function accountsGet(userId, res) {
-	User.findOne({ _id: userId }).then(user => {
-		if (!user) return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
-		var accounts = user.accounts;
-		return res.json(accounts);
-	});
-}
-
-// route:  GET api/user/admin/get
-// access: User
+// route:  GET api/user/admin/:id
+// access: Auth
 // desc:   api return if current user is admin or not
-router.get('/admin/get', (req, res) => {
-	userVerifier(req.headers['token'], (verifierRes) => {
-		if (!verifierRes.success) {
-			return res.status(HttpStatus.BAD_REQUEST).json(verifierRes);
-		}
-		const uid = verifierRes.id;
-		User.findOne({ _id: uid }).then(user => {
-			if (!user) return res.status(HttpStatus.BAD_REQUEST).json(messages.USER_NOT_FOUND_ERROR);
-			var admin = user.role === 'admin';
-			return res.json({ 'admin': admin });
-		});
-	});
+router.get('/admin/:id', async (req, res) => {
+	try {
+		const user = await verifier.user(req.headers['token']);
+		const userId = req.params.id;
+		const userFromDatabase = await mongodbUser.get(userId);
+		var admin = userFromDatabase.role === 'admin';
+		return res.json({ 'admin': admin });
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
-
 
 // route:  GET api/user/get
 // access: User/Admin
