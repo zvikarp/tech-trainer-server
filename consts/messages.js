@@ -1,30 +1,30 @@
 module.exports = {
 	UNKNOWN_ERROR: {
 		'success': false,
-		'message': 'An unknown error occurred, please try again.'
+		'messages': ['An unknown error occurred, please try again.'],
 	},
 	TOKEN_NOT_VALID_ERROR: {
 		'success': false,
-		'message': 'Auth token is not valid'
+		'messages': ['Auth token is not valid'],
 	},
 	TOKEN_NOT_SUPPLIED_ERROR: {
 		'success': false,
-		'message': 'Auth token is not supplied'
+		'messages': ['Auth token is not supplied'],
 	},
 	USER_NOT_FOUND_ERROR: {
 		'success': false,
-		'message': 'It seems like the user does not exist in our databases'
+		'messages': ['It seems like the user does not exist in our databases'],
 	},
 	GENERAL_SUCCESS: {
 		'success': true,
-		'message': 'The operation was successful'
+		'messages': ['The operation was successful'],
 	},
 	USER_PERMISSIONS_ERROR: {
 		'success': false,
-		'message': 'This user does not have permission to do this operation'
+		'messages': ['This user does not have permission to do this operation'],
 	},
 	DOCUMENT_NOT_FOUND: {
 		'success': false,
-		'message': 'The document was not found'
+		'messages': ['The document was not found'],
 	},
 };

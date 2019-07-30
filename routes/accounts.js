@@ -1,77 +1,84 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const documents = require("../consts/documents");
 const messages = require("../consts/messages");
-const Settings = require("../models/Settings");
 const mongodbSettings = require("../utils/mongodb/settings");
-const userVerifier = require("../utils/verifiers/userVerifier");
-const adminVerifier = require("../utils/verifiers/adminVerifier");
+const verifier = require("../utils/verifier");
 const validateAccounts = require("../utils/validation/accounts");
 
 const router = express.Router();
 
-
 // route:  GET api/accounts/
 // access: Authed
 // desc:   api returns all types of accounts
-router.get("/", (req, routerRes) => {
-	return userVerifier(req.headers['token'], async (verifierRes) => {
-		if (!verifierRes.success) {
-			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		try {
-			const settings = await mongodbSettings.get();
-			return routerRes.json(settings.accounts)
-		} catch (err) {
-			return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-		}
-	});
+router.get("/", async (req, res) => {
+	try {
+		await verifier.user(req.headers['token']);
+		const settings = await mongodbSettings.get();
+		return res.json(settings.accounts)
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
-
 
 // route:  PUT api/accounts/
 // access: Admin
 // desc:   api updates the accounts info
-router.put("/", (req, routerRes) => {
-	return adminVerifier(req.headers['authorization'], async (verifierRes) => {
-		if (!verifierRes.success)
-			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		try {
-			const settings = await mongodbSettings.get();
-			const serverAccounts = settings.accounts;			
-			var hasErrors = false;
-			const recivedAccounts = req.body.accounts;
-
-			Object.keys(recivedAccounts).forEach(accountId => {
-				var account = recivedAccounts[accountId];
-				var oldAccount = account;
-				if (account.action !== 'new') {
-					if (!serverAccounts[accountId]) hasErrors = true;
-					oldAccount = serverAccounts[accountId];
-				}
-				const { errors, isValid } = validateAccounts(oldAccount, account);
-				if (!isValid) {
-					hasErrors = true;
-				}
-				if (account.action === "delete") {
-					delete serverAccounts[accountId];
-				}
-				else {
-					serverAccounts[accountId] = account;
-				}
-			});
-			if (hasErrors) return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(putSettings);
-			const putSettings = await mongodbSettings.put(serverAccounts);
-			if (putSettings) {
-				return routerRes.json(messages.GENERAL_SUCCESS);
-			}
-			return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(putSettings);
-		}
-		catch (err) {
-			return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(err);
-		}
-	});
+router.put("/", async (req, res) => {
+	try {
+		await verifier.user(req.headers['authorization']);
+		const settings = await mongodbSettings.get();
+		const serverAccounts = settings.accounts;
+		const recivedAccounts = req.body.accounts;
+		const updatedAccounts = getUpdatedAccountsArray(serverAccounts, recivedAccounts);
+		await mongodbSettings.put(updatedAccounts);
+		return res.json(messages.GENERAL_SUCCESS);
+	}
+	catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
+
+function getUpdatedAccountsArray(serverAccounts, recivedAccounts) {
+	Object.keys(recivedAccounts).forEach(accountId => {
+		const account = recivedAccounts[accountId];
+		const oldAccount = getAccountFromServerArray(serverAccounts, account, accountId);
+		const accountValid = validateAccounts(oldAccount, account);
+		if (!accountValid.success) {
+			throw new Error({
+				status: HttpStatus.BAD_REQUEST,
+				message: messages,
+			});
+		}
+		serverAccounts = updateServerArray(serverAccounts, account, accountId);
+	});
+	return serverAccounts;
+}
+
+function getAccountFromServerArray(serverAccounts, account, accountId) {
+	const isNew = account.action === 'new';
+	const isInDatabase = serverAccounts[accountId] !== undefined;
+	if (isNew === isInDatabase) {
+		throw new Error({
+			status: HttpStatus.BAD_REQUEST,
+			message: messages.UNKNOWN_ERROR,
+		});
+	}
+	return serverAccounts[accountId] || account;
+}
+
+function updateServerArray(serverAccounts, account, accountId) {
+	if (account.action === 'delete') {
+		delete serverAccounts[accountId];
+		return serverAccounts;
+	}
+	account.action = 'modified';
+	serverAccounts[accountId] = account;
+	return serverAccounts;
+}
 
 module.exports = router;
