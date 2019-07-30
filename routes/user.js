@@ -1,8 +1,8 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const userVerifier = require("../utils/userVerifier");
-const adminVerifier = require("../utils/adminVerifier");
+const userVerifier = require("../utils/verifiers/userVerifier");
+const adminVerifier = require("../utils/verifiers/adminVerifier");
 const validateSettingsInput = require("../utils/validation/settings");
 const validateWebsites = require("../utils/validation/websites");
 const User = require("../models/User");

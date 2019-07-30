@@ -1,8 +1,8 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const userVerifier = require("../utils/userVerifier");
-const adminVerifier = require("../utils/adminVerifier");
+const userVerifier = require("../utils/verifiers/userVerifier");
+const adminVerifier = require("../utils/verifiers/adminVerifier");
 const History = require("../models/History");
 
 const router = express.Router();

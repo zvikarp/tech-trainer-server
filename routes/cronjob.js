@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const HttpStatus = require('http-status-codes');
 
-const userVerifier = require("../utils/userVerifier");
+const userVerifier = require("../utils/verifiers/userVerifier");
 const User = require("../models/User");
 const Settings = require("../models/Settings");
 const Chart = require("../models/Chart");

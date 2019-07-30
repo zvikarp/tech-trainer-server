@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const config = require("../config/config");
-const messages = require("../consts/messages")
+const config = require("../../config/config");
+const messages = require("../../consts/messages")
 
 // the token validator function
 // return the user object with `success = true` if able to validate token
