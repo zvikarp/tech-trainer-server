@@ -1,21 +1,12 @@
 const documents = require("../../consts/documents");
 const messages = require("../../consts/messages");
-const Settings = require("../../models/Settings");
+const Chart = require("../../models/Chart");
 const HttpStatus = require('http-status-codes');
 
 function get() {
-	return Settings.findById(documents.ACCOUNTS).then(settings => {
+	return Chart.findById(documents.CHART).then(settings => {
 		return settings;
 	}).catch(err => documentNotFound());
-}
-
-function put(accounts) {
-	return Settings.findOneAndUpdate(
-		{ _id: documents.ACCOUNTS },
-		{ $set: { accounts: accounts } },
-		{ upsert: true }).then(settings => {
-			return true;
-		}).catch(err => documentNotFound());
 }
 
 function documentNotFound() {
@@ -25,4 +16,4 @@ function documentNotFound() {
 	});
 }
 
-module.exports = { get, put };
+module.exports = { get };

@@ -1,27 +1,23 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const Chart = require("../models/Chart");
 const messages = require("../consts/messages");
-const documents = require("../consts/documents");
+const mongodbChart = require("../utils/mongodb/chart");
 
 const router = express.Router();
-
 
 // route:  POST api/chart/get
 // access: Public
 // desc:   api return the current chart
-router.get('/get', (req, routerRes) => {
-	Chart.findOne({ _id: documents.CHART }).then(chart => {
-		if (!chart) return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.UNKNOWN_ERROR);
-		var charts = {
-			'top3': chart.top3,
-			'passed': chart.passed,
-			'under': chart.under,
-			'lastUpdated': chart.lastUpdated,
-		};
-		return routerRes.json(charts);
-	});
+router.get('/', async (req, res) => {
+	try {
+		const chart = await mongodbChart.get();
+		return res.json(chart);
+	} catch (err) {		
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
 
 module.exports = router;
