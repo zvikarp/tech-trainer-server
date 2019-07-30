@@ -16,7 +16,6 @@ const router = express.Router();
 // access: Public
 // desc:   Register user
 router.post("/register", (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateRegisterInput(req.body);
 	if (!isValid) {
 		return res.status(HttpStatus.FORBIDDEN).json(errors);
@@ -49,7 +48,6 @@ router.post("/register", (req, res) => {
 // access: Public
 // desc:   login user and return token
 router.post("/login", (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', 'https://naughty-villani-d0f667.netlify.com');
 	const { errors, isValid } = validateLoginInput(req.body);
 	if (!isValid) {
 		return res.status(HttpStatus.FORBIDDEN).json(errors);

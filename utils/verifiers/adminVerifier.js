@@ -20,12 +20,12 @@ module.exports = function (token, callback) {
 						res = decoded;
 						const uid = res.id;
 						User.findOne({ _id: uid }).then(user => {
-							if (!user) return routerRes.status(400).json(messages.TOKEN_NOT_VALID_ERROR);
+							if (!user) return callback(messages.TOKEN_NOT_VALID_ERROR);
 							if (user.role === "admin") {
 								res['success'] = true;
 								return callback(res);
 							} else {
-								return routerRes.status(400).json(messages.TOKEN_NOT_VALID_ERROR);
+								return callback(messages.TOKEN_NOT_VALID_ERROR);
 							}
 						});
         });

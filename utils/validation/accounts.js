@@ -29,11 +29,11 @@ module.exports = function validateAccounts(oldData, newData) {
 			}
 			
 			if (oldData.type !== newData.type) {
-				errors.type = "Error with getting type";
+				messages.push("Error with getting type");
 			}
 			if (oldData.type === "website") {
 				if (oldData.name !== newData.name) {
-					errors.name = "Can't change website name.";
+					messages.push("Can't change website name.");
 				}
 			}
 			break;
