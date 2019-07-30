@@ -1,4 +1,4 @@
-const messages = {
+module.exports = {
 	UNKNOWN_ERROR: {
 		'success': false,
 		'message': 'An unknown error occurred, please try again.'
@@ -28,5 +28,3 @@ const messages = {
 		'message': 'The document was not found'
 	},
 };
-
-module.exports = messages;
