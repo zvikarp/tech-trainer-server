@@ -1,5 +1,5 @@
 const express = require("express");
-const HttpStatus = require('http-status-codes');
+const HttpStatus = require("http-status-codes");
 
 const messages = require("../consts/messages");
 const User = require("../models/User");
@@ -23,9 +23,9 @@ async function asyncForEach(array, callback) {
 // route:  PUT api/user/accounts/:id
 // access: User
 // desc:   api updates the users connected accounts.
-router.put('/accounts/:id', async (req, res) => {
+router.put("/accounts/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers['authorization']);
+		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		await updateUserAccounts(userId, res, req.body.accounts);
@@ -43,22 +43,37 @@ function removeUserAccount(userAccounts, accountId) {
 }
 
 // if not website -> dont need to validate, but if is then first validate account name
-async function updateAndValidateUserAccount(userAccounts, serverAccount, newAccount, accountId) {
-	const isWebsite = (newAccount !== "") && (serverAccount.type === "website");
-	const valid = !isWebsite || await validateWebsites(serverAccount.name, newAccount);
-	if ((valid !== true) && (!valid.success)) throw valid;
+async function updateAndValidateUserAccount(
+	userAccounts,
+	serverAccount,
+	newAccount,
+	accountId
+) {
+	const isWebsite = newAccount !== "" && serverAccount.type === "website";
+	const valid =
+		!isWebsite || (await validateWebsites(serverAccount.name, newAccount));
+	if (valid !== true && !valid.success) throw valid;
 	userAccounts[accountId] = newAccount;
 	return userAccounts;
 }
 
-async function updateAndValidateUserAccounts(serverAccounts, userAccounts, newAccounts) {
-	await asyncForEach(Object.keys(newAccounts), async (accountId) => {
+async function updateAndValidateUserAccounts(
+	serverAccounts,
+	userAccounts,
+	newAccounts
+) {
+	await asyncForEach(Object.keys(newAccounts), async accountId => {
 		const serverAccount = serverAccounts[accountId];
 		const newAccount = newAccounts[accountId];
 		if (!serverAccount) {
 			userAccounts = removeUserAccount(userAccounts, accountId);
 		} else {
-			userAccounts = await updateAndValidateUserAccount(userAccounts, serverAccount, newAccount, accountId);
+			userAccounts = await updateAndValidateUserAccount(
+				userAccounts,
+				serverAccount,
+				newAccount,
+				accountId
+			);
 		}
 	});
 	return userAccounts;
@@ -69,16 +84,20 @@ async function updateUserAccounts(userId, newAccounts) {
 	const settings = await mongodbSettings.get();
 	const serverAccounts = settings.accounts;
 	const userAccounts = user.accounts;
-	const updatedAccounts = await updateAndValidateUserAccounts(serverAccounts, userAccounts, newAccounts);
+	const updatedAccounts = await updateAndValidateUserAccounts(
+		serverAccounts,
+		userAccounts,
+		newAccounts
+	);
 	await mongodbUser.putAccounts(userId, updatedAccounts);
 }
 
 // route:  GET api/user/accounts/:id
 // access: User/Admin
 // desc:   api gets the users connected accounts.
-router.get('/accounts/:id', async (req, res) => {
+router.get("/accounts/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers['token']);
+		const user = await verifier.user(req.headers["token"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const userFromDatabase = await mongodbUser.get(userId);
@@ -94,13 +113,13 @@ router.get('/accounts/:id', async (req, res) => {
 // route:  GET api/user/admin/:id
 // access: Auth
 // desc:   api return if current user is admin or not
-router.get('/admin/:id', async (req, res) => {
+router.get("/admin/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers['token']);
+		const user = await verifier.user(req.headers["token"]);
 		const userId = req.params.id;
 		const userFromDatabase = await mongodbUser.get(userId);
-		var admin = userFromDatabase.role === 'admin';
-		return res.json({ 'admin': admin });
+		var admin = userFromDatabase.role === "admin";
+		return res.json({ admin: admin });
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const message = err.message || messages.UNKNOWN_ERROR;
@@ -108,82 +127,57 @@ router.get('/admin/:id', async (req, res) => {
 	}
 });
 
-// route:  GET api/user/get
+// route:  GET api/user/:id
 // access: User/Admin
 // desc:   api return current user detailes
-router.get('/get', (req, res) => {
-	userVerifier(req.headers['token'], (verifierRes) => {
-		if (!verifierRes.success) {
-			return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		var uid = verifierRes.id;
-		if ((req.headers['userid']) && (req.headers['userid'] != "undefined") && (req.headers['userid'] != undefined)) {
-			adminVerifier(req.headers['authorization'], (verifierRes) => {
-				if (!verifierRes.success) {
-					return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-				} else {
-					uid = req.headers['userid'];
-					return userGet(uid, res);
-				}
-			});
-		} else {
-			return userGet(uid, res);
-		}
-	});
+router.get("/:id", async (req, res) => {
+	try {
+		const user = await verifier.user(req.headers["token"]);
+		const userId = req.params.id;
+		if (user.id !== userId) await verifier.admin(user.id);
+		const userFromDatabase = await mongodbUser.get(userId);
+		return res.json(userFromDatabase);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
 
-function userGet(userId, res) {
-	User.findOne({ _id: userId }).then(user => {
-		if (!user) return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
-		user.password = undefined;
-		return res.json({ user });
-	});
-}
-
-
-// route:  POST api/user/settings/update
+// route:  PUT api/user/settings/:id
 // access: User/Admin
 // desc:   api updates the users settings.
-router.post('/settings/update', (req, res) => {
-	userVerifier(req.headers['authorization'], (verifierRes) => {
-		if (!verifierRes.success) {
-			return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		var uid = verifierRes.id;
-		if ((req.headers['userid']) && (req.headers['userid'] != "undefined") && (req.headers['userid'] != undefined)) {
-			adminVerifier(req.headers['authorization'], (verifierRes) => {
-				if (!verifierRes.success) {
-					return res.status(HttpStatus.FORBIDDEN).json(verifierRes);
-				} else {
-					uid = req.headers['userid'];
-					return updateUserSettings(uid, req, res, true);
-				}
-			});
-		} else {
-			return updateUserSettings(uid, req, res, false);
-		}
-	});
+router.put("/settings/:id", async (req, res) => {
+	try {
+		const user = await verifier.user(req.headers["authorization"]);
+		const userId = req.params.id;
+		if (user.id !== userId) await verifier.admin(user.id);
+		const valid = validateSettingsInput(req.body);		
+		if (!valid.success) throw valid;
+		await updateUserSettings(userId, req.body, user.id !== userId);
+		return res.json(messages.GENERAL_SUCCESS);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
 
-function updateUserSettings(userId, req, res, isAdmin) {
-	User.findOne({ _id: userId }).then(user => {
-		if (!user) return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
-		var userName = user.name;
-		var userEmail = user.email;
-		var bonusPoints = user.bonusPoints;
-		if (req.body.name) userName = req.body.name;
-		if (req.body.email) userEmail = req.body.email;
-		if (isAdmin && req.body.bonusPoints) bonusPoints = req.body.bonusPoints;
-		const { errors, isValid } = validateSettingsInput(req.body);
-		if (!isValid) {
-			return res.status(HttpStatus.BAD_REQUEST).json(errors);
-		}
-		User.findOneAndUpdate({ _id: userId }, { $set: { email: userEmail, name: userName, bonusPoints: bonusPoints } }, { upsert: true }).then(user => {
-			if (!user) return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
-			return res.json(messages.GENERAL_SUCCESS);
-		});
-	});
+async function updateUserSettings(userId, body, isAdmin) {
+	const user = await mongodbUser.get(userId);
+	const name = body.name || user.name;
+	const email = body.email || user.email;
+	const bonusPoints = updateUserBonusPoints(
+		user.bonusPoints,
+		body.bonusPoints,
+		isAdmin
+	);
+	await mongodbUser.putSettings(userId, name, email, bonusPoints);
 }
 
+function updateUserBonusPoints(currentBonusPoints, newBonusPpoints, isAdmin) {
+	if (isAdmin) return newBonusPpoints || currentBonusPoints;
+	return currentBonusPoints;
+}
 
 module.exports = router;

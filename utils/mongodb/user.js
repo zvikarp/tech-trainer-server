@@ -21,7 +21,16 @@ function put(user) {
 function putAccounts(userId, accounts) {
 	return User.findOneAndUpdate(
 		{ _id: userId },
-		{ $set: { accounts: accounts } },
+		{ $set: { accounts } },
+		{ upsert: true }).then(user => {
+			return true;
+		}).catch(err => documentNotFound());
+}
+
+function putSettings(userId, name, email, bonusPoints) {
+	return User.findOneAndUpdate(
+		{ _id: userId },
+		{ $set: { name, email, bonusPoints } },
 		{ upsert: true }).then(user => {
 			return true;
 		}).catch(err => documentNotFound());
@@ -34,4 +43,4 @@ function documentNotFound() {
 	});
 }
 
-module.exports = { get, put, putAccounts };
+module.exports = { get, put, putAccounts, putSettings };
