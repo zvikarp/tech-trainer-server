@@ -4,13 +4,12 @@ const jwt = require("jsonwebtoken");
 const HttpStatus = require('http-status-codes');
 
 const config = require("../config/config");
+const messages = require("../consts/messages");
 const User = require("../models/User");
 const validateRegisterInput = require("../utils/validation/register");
 const validateLoginInput = require("../utils/validation/login");
-const messages = require("../consts/messages");
 
 const router = express.Router();
-
 
 // route:  POST api/auth/register
 // access: Public

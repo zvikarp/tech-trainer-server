@@ -1,6 +1,6 @@
 const express = require("express");
 const axios = require("axios");
-const HttpStatus = require('http-status-codes');
+const HttpStatus = require("http-status-codes");
 
 const userVerifier = require("../utils/verifiers/userVerifier");
 const User = require("../models/User");
@@ -9,14 +9,20 @@ const Chart = require("../models/Chart");
 const History = require("../models/History");
 const messages = require("../consts/messages");
 const documents = require("../consts/documents");
-
+const verifier = require("../utils/verifier");
+const mongodbUser = require("../utils/mongodb/user");
+const mongodbSettings = require("../utils/mongodb/settings");
+const mongodbChart = require("../utils/mongodb/chart");
 const router = express.Router();
 
+const passingPoints = 50;
 
 // gets the users repos from github via APIs
 async function getGithubPoints(username) {
 	try {
-		var res = await axios.get("https://api.github.com/users/" + username + "/repos");
+		var res = await axios.get(
+			"https://api.github.com/users/" + username + "/repos"
+		);
 		return res.data.length;
 	} catch (error) {
 		return 0;
@@ -26,7 +32,10 @@ async function getGithubPoints(username) {
 // gets the users articels from medium via APIs
 async function getMediumPoints(username) {
 	try {
-		var res = await axios.get("https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" + username);
+		var res = await axios.get(
+			"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
+				username
+		);
 		return res.data.items.length;
 	} catch (error) {
 		return 0;
@@ -36,7 +45,11 @@ async function getMediumPoints(username) {
 // gets the users points from stackoverflow via APIs
 async function getStackoverflowPoints(username) {
 	try {
-		var res = await axios.get("https://api.stackexchange.com/2.2/users/" + username + "?site=stackoverflow");
+		var res = await axios.get(
+			"https://api.stackexchange.com/2.2/users/" +
+				username +
+				"?site=stackoverflow"
+		);
 		return res.data.items[0].reputation;
 	} catch (error) {
 		return 0;
@@ -57,41 +70,42 @@ function sortUsersByPoints(a, b) {
 }
 
 // remove user by id from array
-	function removeUserFromArrayById(array, id) {
-		return array.filter(function (child) {
-			return child.id !== id;
-		});
-	}
+function removeUserFromArrayById(array, id) {
+	return array.filter(function(child) {
+		return child.id !== id;
+	});
+}
 
 async function getUsersPoints(user, accounts) {
-
 	var userPoints = {};
 	user.points = 0;
 
-	await asyncForEach(Object.keys(user.accounts), async (key) => {
-
+	await asyncForEach(Object.keys(user.accounts), async key => {
 		if (!accounts[key]);
 		else if (accounts[key].type !== "website");
 		else if (user.accounts[key] == "");
-
 		else {
 			switch (accounts[key].name) {
 				case "GitHub":
-					const githubPoints = (await getGithubPoints(user.accounts[key]) * accounts[key].points);
+					const githubPoints =
+						(await getGithubPoints(user.accounts[key])) * accounts[key].points;
 					user.points = user.points + githubPoints;
 					if (githubPoints > 0) {
 						userPoints.github = githubPoints;
 					}
 					break;
 				case "Medium":
-					const mediumPoints = (await getMediumPoints(user.accounts[key]) * accounts[key].points);
+					const mediumPoints =
+						(await getMediumPoints(user.accounts[key])) * accounts[key].points;
 					user.points = user.points + mediumPoints;
 					if (mediumPoints > 0) {
 						userPoints.medium = mediumPoints;
 					}
 					break;
 				case "Stackoverflow":
-					const stackoverflowPoints = (await getStackoverflowPoints(user.accounts[key]) * accounts[key].points);
+					const stackoverflowPoints =
+						(await getStackoverflowPoints(user.accounts[key])) *
+						accounts[key].points;
 					user.points = user.points + stackoverflowPoints;
 					if (stackoverflowPoints > 0) {
 						userPoints.stackoverflow = stackoverflowPoints;
@@ -102,8 +116,10 @@ async function getUsersPoints(user, accounts) {
 					break;
 			}
 		}
+		userPoints.points = user.points;
+		return userPoints;
 	});
-	
+
 	await User.findOneAndUpdate(
 		{ _id: user.id },
 		{ $set: { points: user.points } }
@@ -113,98 +129,126 @@ async function getUsersPoints(user, accounts) {
 		userId: user.id,
 		timestamp: Date.now(),
 		points: user.points,
-		accounts: userPoints,
+		accounts: userPoints
 	});
 	await userHistory.save();
 	return {
-		'id': user.id,
-		'name': user.name,
-		'points': user.points
+		id: user.id,
+		name: user.name,
+		points: user.points
 	};
 }
-
 
 // route:  POST api/cronjob/updatepoints
 // access: Admin
 // desc:   api re-calcs the top chart
-router.post("/updatepoints", async (req, routerRes) => {
-	userVerifier(req.headers["authorization"], verifierRes => {
-		if (!verifierRes.success) {
-			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		const uid = verifierRes.id;
-		return User.findOne({ _id: uid }).then(user => {
-			if (!user) return routerRes.status(HttpStatus.BAD_REQUEST).json(messages.USER_NOT_FOUND_ERROR);
-			if (user.role != "admin") return routerRes.status(HttpStatus.FORBIDDEN).json(messages.USER_PERMISSIONS_ERROR);
-			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
-				if (!settings) return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
-				return User.find({}).then(async (users) => {
-					const passingPoints = 50;
-					var chart = {
-						'top3': [],
-						'passed': [],
-						'under': []
-					};
-					const accounts = settings.accounts;
-					await asyncForEach(users, async (user) => {
-						const userObject = await getUsersPoints(user, accounts);
-						if (user.points > passingPoints) {
-							chart.passed.push(userObject);
-						} else {
-							chart.under.push(userObject);
-						}
-					});
-					chart.passed.sort(sortUsersByPoints);
-					chart.under.sort(sortUsersByPoints);
-					chart.top3 = chart.passed.splice(0, 3);
-
-					await Chart.findOneAndUpdate({ _id: documents.CHART }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
-
-					return routerRes.json({ test: 'success' });
-				});
-			});
-		});
-	});
+router.post("/updatepoints", async (req, res) => {
+	try {
+		await verifier.admin(req.headers["authorization"]);
+		const settings = await mongodbSettings.get();
+		const users = await mongodbUser.getAll();
+		const accounts = settings.accounts;
+		const chart = updateChartByUsers(users, accounts);
+		await mongodbChart.put(chart.top3, chart.passed, chart.under);
+		return res.json(messages.GENERAL_SUCCESS);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
 
-// route:  POST api/cronjob/updateuserpoints
+async function updateChartByUsers(users, accounts) {
+	var chart = { top3: [], passed: [], under: [] };
+	await asyncForEach(users, async user => {
+		const userObject = await getUsersPoints(user, accounts);
+		chart = addToChart(chart, passingPoints, userObject);
+	});
+	return orderChart(chart);
+}
+
+function addToChart(chart, passing, user) {
+	if (user.points >= passing) chart.passed.push(user);
+	else chart.under.push(user);
+	return chart;
+}
+
+function orderChart(chart) {
+	chart.passed.sort(sortUsersByPoints);
+	chart.under.sort(sortUsersByPoints);
+	chart.top3 = chart.passed.splice(0, 3);
+	return chart;
+}
+
+// route:  POST api/cronjob/updateuserpoints/:id
 // access: User
 // desc:   api re-calcs the top chart by just calculating one user
-router.post("/updateuserspoints", async (req, routerRes) => {
-	userVerifier(req.headers["authorization"], verifierRes => {
-		if (!verifierRes.success) {
-			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
-		}
-		const uid = verifierRes.id;
-		return User.findOne({ _id: uid }).then(user => {
-			if (!user) return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.USER_NOT_FOUND_ERROR);
-			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
-				return Chart.findOne({ _id: documents.CHART }).then(async (recivedChart) => {
-					if (!settings) return routerRes.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.DOCUMENT_NOT_FOUND);
-					const passingPoints = 50;
-					var chart = {
-						'top3': [],
-						'passed': [...recivedChart.top3, ...recivedChart.passed],
-						'under': recivedChart.under,
-					};
-					chart.passed = removeUserFromArrayById(chart.passed, uid);
-					chart.under = removeUserFromArrayById(chart.under, uid);
-					const accounts = settings.accounts;
-					const userObject = await getUsersPoints(user, accounts);
-					if (user.points > passingPoints) {
-						chart.passed.push(userObject);
-					} else {
-						chart.under.push(userObject);
-					}
-					chart.passed.sort(sortUsersByPoints);
-					chart.under.sort(sortUsersByPoints);
-					chart.top3 = chart.passed.splice(0, 3);
-					await Chart.findOneAndUpdate({ _id: documents.CHART }, { $set: { top3: chart.top3, passed: chart.passed, under: chart.under, lastUpdated: Date.now() } }, { upsert: true }).exec();
-					return routerRes.json({ test: 'success' });
-				});
-			});
-		});
-	});
+router.post("/updateuserspoints/:id", async (req, res) => {
+	try {
+		await verifier.user(req.headers["authorization"]);
+		const userId = req.params.id;
+		const user = await mongodbUser.get(userId);
+		const settings = await mongodbSettings.get();
+		const accounts = settings.accounts;
+		const chart = updateChartByUser(user, accounts);
+		await mongodbChart.put(chart.top3, chart.passed, chart.under);
+		return res.json(messages.GENERAL_SUCCESS);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const message = err.message || messages.UNKNOWN_ERROR;
+		return res.status(status).json(message);
+	}
 });
+
+async function updateChartByUser(user, accounts) {
+	var chart = { top3: [], passed: [], under: [] };
+	const userObject = await getUsersPoints(user, accounts);
+	chart = addToChart(chart, passingPoints, userObject);
+	return orderChart(chart);
+}
+// router.post("/updateuserspoints", async (req, routerRes) => {
+// 	userVerifier(req.headers["authorization"], verifierRes => {
+// 		if (!verifierRes.success) {
+// 			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
+// 		}
+// 		const uid = verifierRes.id;
+// 		return User.findOne({ _id: uid }).then(user => {
+// 			if (!user)
+// 				return routerRes
+// 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
+// 					.json(messages.USER_NOT_FOUND_ERROR);
+// 			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
+// 				return Chart.findOne({ _id: documents.CHART }).then(
+// 					async recivedChart => {
+// 						if (!settings)
+// 							return routerRes
+// 								.status(HttpStatus.INTERNAL_SERVER_ERROR)
+// 								.json(messages.DOCUMENT_NOT_FOUND);
+// 						const passingPoints = 50;
+// 						var chart = {
+// 							top3: [],
+// 							passed: [...recivedChart.top3, ...recivedChart.passed],
+// 							under: recivedChart.under
+// 						};
+// 						chart.passed = removeUserFromArrayById(chart.passed, uid);
+// 						chart.under = removeUserFromArrayById(chart.under, uid);
+// 						const accounts = settings.accounts;
+// 						const userObject = await getUsersPoints(user, accounts);
+// 						if (user.points >= passingPoints) {
+// 							chart.passed.push(userObject);
+// 						} else {
+// 							chart.under.push(userObject);
+// 						}
+// 						chart.passed.sort(sortUsersByPoints);
+// 						chart.under.sort(sortUsersByPoints);
+// 						chart.top3 = chart.passed.splice(0, 3);
+// 						await mongodbChart.put(top3, passed, under);
+// 						return routerRes.json({ test: "success" });
+// 					}
+// 				);
+// 			});
+// 		});
+// 	});
+// });
 
 module.exports = router;

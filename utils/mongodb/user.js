@@ -9,6 +9,12 @@ function get(userId) {
 	}).catch(err => documentNotFound());
 }
 
+function getAll() {
+	return User.find({}).then(user => {		
+		return user;
+	}).catch(err => documentNotFound());
+}
+
 function put(user) {
 	return User.findOneAndUpdate(
 		{ _id: user.id },
@@ -43,4 +49,4 @@ function documentNotFound() {
 	});
 }
 
-module.exports = { get, put, putAccounts, putSettings };
+module.exports = { get, getAll, put, putAccounts, putSettings };
