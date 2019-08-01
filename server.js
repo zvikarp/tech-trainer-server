@@ -29,8 +29,8 @@ app.use(function(req, res, next) {
 	res.setHeader("Access-Control-Allow-Origin", config.origin);
 	res.header("Access-Control-Allow-Origin", config.origin);
 	res.header("Access-Control-Allow-Credentials", true);
-	res.header("Access-Control-Allow-Methods", config.origin);
-	res.header("Access-Control-Allow-Headers", config.origin);
+	res.header('Access-Control-Allow-Methods', '*');
+	res.header('Access-Control-Allow-Methods', '*');
 	next();
 });
 
