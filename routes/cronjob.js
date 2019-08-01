@@ -2,19 +2,15 @@ const express = require("express");
 const axios = require("axios");
 const HttpStatus = require("http-status-codes");
 
-const userVerifier = require("../utils/verifiers/userVerifier");
-const User = require("../models/User");
-const Settings = require("../models/Settings");
-const Chart = require("../models/Chart");
-const History = require("../models/History");
 const messages = require("../consts/messages");
-const documents = require("../consts/documents");
+const User = require("../models/User");
+const History = require("../models/History");
 const verifier = require("../utils/verifier");
 const mongodbUser = require("../utils/mongodb/user");
 const mongodbSettings = require("../utils/mongodb/settings");
 const mongodbChart = require("../utils/mongodb/chart");
-const router = express.Router();
 
+const router = express.Router();
 const passingPoints = 50;
 
 // gets the users repos from github via APIs
@@ -148,7 +144,7 @@ router.post("/updatepoints", async (req, res) => {
 		const settings = await mongodbSettings.get();
 		const users = await mongodbUser.getAll();
 		const accounts = settings.accounts;
-		const chart = updateChartByUsers(users, accounts);
+		const chart = await updateChartByUsers(users, accounts);
 		await mongodbChart.put(chart.top3, chart.passed, chart.under);
 		return res.json(messages.GENERAL_SUCCESS);
 	} catch (err) {
@@ -190,7 +186,9 @@ router.post("/updateuserspoints/:id", async (req, res) => {
 		const user = await mongodbUser.get(userId);
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
-		const chart = updateChartByUser(user, accounts);
+		const chart = await updateChartByUser(user, accounts);
+		console.log(chart);
+		
 		await mongodbChart.put(chart.top3, chart.passed, chart.under);
 		return res.json(messages.GENERAL_SUCCESS);
 	} catch (err) {
@@ -206,49 +204,5 @@ async function updateChartByUser(user, accounts) {
 	chart = addToChart(chart, passingPoints, userObject);
 	return orderChart(chart);
 }
-// router.post("/updateuserspoints", async (req, routerRes) => {
-// 	userVerifier(req.headers["authorization"], verifierRes => {
-// 		if (!verifierRes.success) {
-// 			return routerRes.status(HttpStatus.FORBIDDEN).json(verifierRes);
-// 		}
-// 		const uid = verifierRes.id;
-// 		return User.findOne({ _id: uid }).then(user => {
-// 			if (!user)
-// 				return routerRes
-// 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-// 					.json(messages.USER_NOT_FOUND_ERROR);
-// 			return Settings.findOne({ _id: documents.ACCOUNTS }).then(settings => {
-// 				return Chart.findOne({ _id: documents.CHART }).then(
-// 					async recivedChart => {
-// 						if (!settings)
-// 							return routerRes
-// 								.status(HttpStatus.INTERNAL_SERVER_ERROR)
-// 								.json(messages.DOCUMENT_NOT_FOUND);
-// 						const passingPoints = 50;
-// 						var chart = {
-// 							top3: [],
-// 							passed: [...recivedChart.top3, ...recivedChart.passed],
-// 							under: recivedChart.under
-// 						};
-// 						chart.passed = removeUserFromArrayById(chart.passed, uid);
-// 						chart.under = removeUserFromArrayById(chart.under, uid);
-// 						const accounts = settings.accounts;
-// 						const userObject = await getUsersPoints(user, accounts);
-// 						if (user.points >= passingPoints) {
-// 							chart.passed.push(userObject);
-// 						} else {
-// 							chart.under.push(userObject);
-// 						}
-// 						chart.passed.sort(sortUsersByPoints);
-// 						chart.under.sort(sortUsersByPoints);
-// 						chart.top3 = chart.passed.splice(0, 3);
-// 						await mongodbChart.put(top3, passed, under);
-// 						return routerRes.json({ test: "success" });
-// 					}
-// 				);
-// 			});
-// 		});
-// 	});
-// });
 
 module.exports = router;

@@ -10,36 +10,26 @@ const accounts = require("./routes/accounts");
 const cronjob = require("./routes/cronjob");
 const history = require("./routes/history");
 const config = require("./config/config");
-
-const app = express();
-
-// Bodyparser middleware
-app.use(
-	bodyParser.urlencoded({
-		extended: false
-	})
-);
-app.use(bodyParser.json());
-
-// DB Config
 const mongoURI = require("./config/config").mongoURI;
 
 // Connect to MongoDB
 mongoose
-	.connect(
-		mongoURI,
-		{ useNewUrlParser: true }
-	)
+	.connect(mongoURI, { useNewUrlParser: true })
 	.then(() => console.log("MongoDB successfully connected"))
 	.catch(err => console.log(err));
-mongoose.set('useFindAndModify', false);
+mongoose.set("useFindAndModify", false);
 mongoose.Promise = global.Promise;
 
-app.use(function (req, res, next) {
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+app.use(function(req, res, next) {
+	res.setHeader("Access-Control-Allow-Origin", config.origin);
 	res.header("Access-Control-Allow-Origin", config.origin);
-	res.setHeader('Access-Control-Allow-Origin', config.origin);
 	res.header("Access-Control-Allow-Credentials", true);
-	res.header('Access-Control-Allow-Methods', config.origin);
+	res.header("Access-Control-Allow-Methods", config.origin);
 	res.header("Access-Control-Allow-Headers", config.origin);
 	next();
 });
@@ -56,5 +46,6 @@ app.use("/api/chart", chart);
 app.use("/api/cronjob", cronjob);
 app.use("/api/history", history);
 
-
-app.listen(config.port, () => console.log(`Server up and running on port ${config.port} !`));
+app.listen(config.port, () =>
+	console.log(`Server up and running on port ${config.port} !`)
+);
