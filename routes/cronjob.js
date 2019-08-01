@@ -199,7 +199,7 @@ router.post("/updateuserspoints/:id", async (req, res) => {
 });
 
 async function updateChartByUser(user, accounts) {
-	var chart = { top3: [], passed: [], under: [] };
+	var chart = await mongodbChart.get();
 	const userObject = await getUsersPoints(user, accounts);
 	chart = addToChart(chart, passingPoints, userObject);
 	return orderChart(chart);
