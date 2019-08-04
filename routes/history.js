@@ -11,7 +11,7 @@ const router = express.Router();
 // desc:   api gets user history
 router.get('/:id', async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers['token']);
+		const user = await verifier.user(req.headers['authorization']);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const historyArray = await mongodbHistory.getByUserId(userId);

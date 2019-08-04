@@ -17,7 +17,7 @@ module.exports = {
 	},
 	GENERAL_SUCCESS: {
 		'success': true,
-		'messages': ['The operation was successful'],
+		'messages': ['The operation was successful!'],
 	},
 	USER_PERMISSIONS_ERROR: {
 		'success': false,

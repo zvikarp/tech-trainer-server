@@ -94,7 +94,7 @@ async function updateUserAccounts(userId, newAccounts) {
 // desc:   api gets the users connected accounts.
 router.get("/accounts/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["token"]);
+		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const userFromDatabase = await mongodbUser.get(userId);
@@ -112,7 +112,7 @@ router.get("/accounts/:id", async (req, res) => {
 // desc:   api return if current user is admin or not
 router.get("/admin/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["token"]);
+		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		const userFromDatabase = await mongodbUser.get(userId);
 		var admin = userFromDatabase.role === "admin";
@@ -129,7 +129,7 @@ router.get("/admin/:id", async (req, res) => {
 // desc:   api return current user detailes
 router.get("/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["token"]);
+		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const userFromDatabase = await mongodbUser.get(userId);

@@ -13,9 +13,12 @@ const router = express.Router();
 // desc:   api returns all types of accounts
 router.get("/", async (req, res) => {
 	try {
-		await verifier.user(req.headers['token']);
+		await verifier.user(req.headers['authorization']);
 		const settings = await mongodbSettings.get();
-		return res.json(settings.accounts)
+		const accounts = settings.accounts;
+		delete accounts._id; // NOTE: the `_id` is NOT supposed to be there.
+												 // it can't be deleted from the db and i dont want to recreate the whole object.
+		return res.json(accounts);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const message = err.message || messages.UNKNOWN_ERROR;
@@ -28,7 +31,7 @@ router.get("/", async (req, res) => {
 // desc:   api updates the accounts info
 router.put("/", async (req, res) => {
 	try {
-		await verifier.user(req.headers['authorization']);
+		await verifier.admin(req.headers['authorization']);
 		const settings = await mongodbSettings.get();
 		const serverAccounts = settings.accounts;
 		const recivedAccounts = req.body.accounts;

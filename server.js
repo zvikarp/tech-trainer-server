@@ -17,7 +17,6 @@ mongoose
 	.connect(mongoURI, { useNewUrlParser: true })
 	.then(() => console.log("MongoDB successfully connected"))
 	.catch(err => console.log(err));
-mongoose.set("useFindAndModify", false);
 mongoose.Promise = global.Promise;
 
 const app = express();
