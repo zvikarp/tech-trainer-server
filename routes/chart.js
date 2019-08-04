@@ -6,7 +6,7 @@ const mongodbChart = require("../utils/mongodb/chart");
 
 const router = express.Router();
 
-// route:  POST api/chart/get
+// route:  GET api/chart/
 // access: Public
 // desc:   api return the current chart
 router.get('/', async (req, res) => {
