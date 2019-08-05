@@ -186,9 +186,7 @@ router.post("/updateuserspoints/:id", async (req, res) => {
 		const user = await mongodbUser.get(userId);
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
-		const chart = await updateChartByUser(user, accounts);
-		console.log(chart);
-		
+		const chart = await updateChartByUser(user, accounts);		
 		await mongodbChart.put(chart.top3, chart.passed, chart.under);
 		return res.json(messages.GENERAL_SUCCESS);
 	} catch (err) {
@@ -200,7 +198,10 @@ router.post("/updateuserspoints/:id", async (req, res) => {
 
 async function updateChartByUser(user, accounts) {
 	var chart = await mongodbChart.get();
+	chart.passed = chart.passed.concat(chart.top3);	
 	const userObject = await getUsersPoints(user, accounts);
+	chart.passed = removeUserFromArrayById(chart.passed, user.id);
+	chart.under = removeUserFromArrayById(chart.under, user.id);
 	chart = addToChart(chart, passingPoints, userObject);
 	return orderChart(chart);
 }

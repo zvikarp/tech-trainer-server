@@ -18,7 +18,7 @@ async function asyncForEach(array, callback) {
 }
 
 // route:  PUT api/user/accounts/:id
-// access: User
+// access: User/Admin
 // desc:   api updates the users connected accounts.
 router.put("/accounts/:id", async (req, res) => {
 	try {
