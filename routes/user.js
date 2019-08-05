@@ -21,11 +21,11 @@ async function asyncForEach(array, callback) {
 // access: User/Admin
 // desc:   api updates the users connected accounts.
 router.put("/accounts/:id", async (req, res) => {
-	try {
+	try {		
 		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
-		await updateUserAccounts(userId, res, req.body.accounts);
+		await updateUserAccounts(userId, req.body.accounts);
 		return res.json(messages.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
