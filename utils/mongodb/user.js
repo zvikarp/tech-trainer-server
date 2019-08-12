@@ -10,8 +10,14 @@ function get(userId) {
 
 function checkIfExistsByEmail(email) {
 	return User.find({ email }).then(docs => {
-		return (!docs.length);
+		return (docs.length);
 	}).catch(err => errorAccessingDatabase());
+}
+
+function getByEmail(email) {
+	return User.findOne({ email }).then(user => {
+		return (user);
+	}).catch(err => documentNotFound());
 }
 
 function getAll() {
@@ -61,4 +67,4 @@ function errorAccessingDatabase() {
 	};
 }
 
-module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail };
+module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail, getByEmail };

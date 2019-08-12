@@ -14,76 +14,72 @@ const router = express.Router();
 
 // route:  POST api/auth/signup
 // access: Public
-// desc:   Signup user
+// desc:   signup user
 router.post("/signup", async (req, res) => {
 	try {
-		const validateSignup = validateSignupInput(req.body);
+		const user = req.body;
+		const validateSignup = validateSignupInput(user);
 		if (!validateSignup.success) {
 			throw { status: HttpStatus.BAD_REQUEST, data: validateSignup };
 		}
-		const user = req.body;
-		const emailNotInUse = await mongodbUser(user.email);
-		if (!emailNotInUse) throw { status: HttpStatus.BAD_REQUEST, data: { success: false, messages: "Email already exists" } };
+		const emailInUse = await mongodbUser.checkIfExistsByEmail(user.email);
+		if (emailInUse) throw { status: HttpStatus.BAD_REQUEST, data: resData.EMAIL_EXISTS };
 		const newUser = new User({
 			name: user.name,
 			email: user.email,
 			password: user.password
 		});
-		bcrypt.genSalt(10, (err, salt) => {
-			bcrypt.hash(newUser.password, salt, (err, hash) => {
-				if (err) throw err;
-				newUser.password = hash;
-				newUser.save()
-					.then(user => { res.json(user); })
-					.catch(err => { res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(resData.UNKNOWN_ERROR) });
-			});
-		});
-
+		const salt = await bcrypt.genSalt(10); // TODO: move to seperate function (or even file) and have custon error return
+		const hash = await bcrypt.hash(newUser.password, salt); // TODO: move to seperate function (or even file) and have custon error return
+		newUser.password = hash;
+		await newUser.save(); // TODO: move to user mongoose file
+		return signin(user.email, user.password, res);
 	} catch (err) {
-
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
 
 // route:  POST api/auth/signin
 // access: Public
-// desc:   Signin user and return token
-router.post("/signin", (req, res) => {
-	const { errors, isValid } = validateSigninInput(req.body);
-	if (!isValid) {
-		return res.status(HttpStatus.FORBIDDEN).json(errors);
-	}
-	const email = req.body.email;
-	const password = req.body.password;
-	User.findOne({ email }).then(user => {
-		if (!user) {
-			return res.status(HttpStatus.BAD_REQUEST).json({ emailnotfound: "Email not found" });
+// desc:   signin user and return token
+router.post("/signin", async (req, res) => {
+	try {
+		const user = req.body;
+		const validateSignin = validateSigninInput(user);
+		if (!validateSignin.success) {
+			throw { status: HttpStatus.BAD_REQUEST, data: validateSignin };
 		}
-		bcrypt.compare(password, user.password).then(isMatch => {
-			if (isMatch) {
-				const payload = {
-					id: user.id,
-					name: user.name,
-					role: user.role,
-				};
-				jwt.sign(
-					payload,
-					config.key,
-					{
-						expiresIn: 31556926 // 1 year in seconds
-					},
-					(err, token) => {
-						res.json({
-							success: true,
-							token: "Bearer " + token
-						});
-					}
-				);
-			} else {
-				return res.status(HttpStatus.BAD_REQUEST).json({ passwordincorrect: "Password incorrect" });
-			}
-		});
-	});
+		return signin(user.email, user.password, res);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
+	}
 });
+
+async function signin(email, password, res) {
+	try {
+		const emailExists = await mongodbUser.checkIfExistsByEmail(email);
+		if (!emailExists) throw { status: HttpStatus.BAD_REQUEST, data: resData.EMAIL_NOT_FOUND };
+		const userFromDatabase = await mongodbUser.getByEmail(email); // TODO: can merge this with the one above
+		passwordMatch = await bcrypt.compare(password, userFromDatabase.password);
+		if (!passwordMatch) throw { status: HttpStatus.BAD_REQUEST, data: resData.PASSWORD_INCORRECT };
+		const payload = {
+			id: userFromDatabase.id,
+			name: userFromDatabase.name,
+			role: userFromDatabase.role,
+		};
+		const token = await jwt.sign(payload, config.key, { expiresIn: 31556926 });
+		return res.json({
+			success: true,
+			token: "Bearer " + token
+		});
+	} catch (err) {
+		throw err;
+	}
+}
 
 module.exports = router;
