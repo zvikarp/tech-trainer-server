@@ -1,12 +1,13 @@
 const Validator = require("validator");
 const isEmpty = require("is-empty");
+
 module.exports = function validateAccounts(oldData, newData) {
 	var messages = [];
 
 	newData.name = !isEmpty(newData.name) ? newData.name : "";
 	newData.points = !isEmpty(newData.points) ? newData.points : null;
 	newData.type = !isEmpty(newData.type) ? newData.type : null;
-	
+
 	switch (newData.action) {
 		case 'delete':
 			if (oldData.type === "website") {
@@ -27,7 +28,6 @@ module.exports = function validateAccounts(oldData, newData) {
 			if (Validator.isEmpty(newData.type)) {
 				messages.push("Type field is required");
 			}
-			
 			if (oldData.type !== newData.type) {
 				messages.push("Error with getting type");
 			}
@@ -38,7 +38,7 @@ module.exports = function validateAccounts(oldData, newData) {
 			}
 			break;
 	}
-	
+
 	return {
 		messages,
 		success: isEmpty(messages)

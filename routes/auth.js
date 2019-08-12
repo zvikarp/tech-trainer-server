@@ -8,38 +8,40 @@ const resData = require("../consts/resData");
 const User = require("../models/User");
 const validateSignupInput = require("../utils/validation/signup");
 const validateSigninInput = require("../utils/validation/signin");
+const mongodbUser = require("../utils/mongodb/user");
 
 const router = express.Router();
 
 // route:  POST api/auth/signup
 // access: Public
 // desc:   Signup user
-router.post("/signup", (req, res) => {
-	const { errors, isValid } = validateSignupInput(req.body);
-	if (!isValid) {
-		return res.status(HttpStatus.FORBIDDEN).json(errors);
-	}
-	User.findOne({ email: req.body.email }).then(user => {
-		if (user) {
-			return res.status(HttpStatus.BAD_REQUEST).json({ email: "Email already exists" });
-		} else {
-			const newUser = new User({
-				name: req.body.name,
-				chats: [],
-				email: req.body.email,
-				password: req.body.password
-			});
-			bcrypt.genSalt(10, (err, salt) => {
-				bcrypt.hash(newUser.password, salt, (err, hash) => {
-					if (err) throw err;
-					newUser.password = hash;
-					newUser.save()
-						.then(user => { res.json(user); })
-						.catch(err => { res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(resData.UNKNOWN_ERROR) });
-				});
-			});
+router.post("/signup", async (req, res) => {
+	try {
+		const validateSignup = validateSignupInput(req.body);
+		if (!validateSignup.success) {
+			throw { status: HttpStatus.BAD_REQUEST, data: validateSignup };
 		}
-	});
+		const user = req.body;
+		const emailNotInUse = await mongodbUser(user.email);
+		if (!emailNotInUse) throw { status: HttpStatus.BAD_REQUEST, data: { success: false, messages: "Email already exists" } };
+		const newUser = new User({
+			name: user.name,
+			email: user.email,
+			password: user.password
+		});
+		bcrypt.genSalt(10, (err, salt) => {
+			bcrypt.hash(newUser.password, salt, (err, hash) => {
+				if (err) throw err;
+				newUser.password = hash;
+				newUser.save()
+					.then(user => { res.json(user); })
+					.catch(err => { res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(resData.UNKNOWN_ERROR) });
+			});
+		});
+
+	} catch (err) {
+
+	}
 });
 
 

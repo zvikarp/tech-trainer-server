@@ -3,13 +3,19 @@ const User = require("../../models/User");
 const HttpStatus = require('http-status-codes');
 
 function get(userId) {
-	return User.findById(userId).then(user => {		
+	return User.findById(userId).then(user => {
 		return user;
 	}).catch(err => documentNotFound());
 }
 
+function checkIfExistsByEmail(email) {
+	return User.find({ email }).then(docs => {
+		return (!docs.length);
+	}).catch(err => errorAccessingDatabase());
+}
+
 function getAll() {
-	return User.find({}).then(user => {		
+	return User.find({}).then(user => {
 		return user;
 	}).catch(err => documentNotFound());
 }
@@ -48,4 +54,11 @@ function documentNotFound() {
 	};
 }
 
-module.exports = { get, getAll, put, putAccounts, putSettings };
+function errorAccessingDatabase() {
+	throw {
+		status: HttpStatus.INTERNAL_SERVER_ERROR,
+		data: resData.UNKNOWN_ERROR,
+	};
+}
+
+module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail };
