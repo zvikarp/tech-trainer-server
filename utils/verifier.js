@@ -12,7 +12,7 @@ async function user(token) {
 		if (!token) {
 			res.status = HttpStatus.BAD_REQUEST;
 			res.message = messages.TOKEN_NOT_SUPPLIED_ERROR;
-			throw new Error(res);
+			throw res;
 		}
 		if (token.startsWith('Bearer ')) {
 			token = token.slice(7, token.length);
@@ -21,14 +21,14 @@ async function user(token) {
 			if (err) {
 				res.status = HttpStatus.BAD_REQUEST;
 				res.message = messages.TOKEN_NOT_VALID_ERROR;
-				throw new Error(res);
+				throw res;
 			}
 			res = decoded;
-			res['success'] = true;
-			return (res);
+			res.success = true;
+			return res;
 		});
 	} catch (err) {
-		throw new Error(res);
+		throw res;
 	}
 }
 
@@ -41,7 +41,7 @@ function admin(token, callback) {
 		if (!token) {
 			res.status = HttpStatus.BAD_REQUEST;
 			res.message = messages.TOKEN_NOT_SUPPLIED_ERROR;
-			throw new Error(res);
+			throw res;
 		}
 		if (token.startsWith('Bearer ')) {
 			token = token.slice(7, token.length);
@@ -50,7 +50,7 @@ function admin(token, callback) {
 			if (err) {
 				res.status = HttpStatus.BAD_REQUEST;
 				res.message = messages.TOKEN_NOT_VALID_ERROR;
-				throw new Error(res);
+				throw res;
 			}
 			res = decoded;
 			const uid = res.id;
@@ -58,15 +58,15 @@ function admin(token, callback) {
 				if (!user) {
 					res.status = HttpStatus.BAD_REQUEST;
 					res.message = messages.TOKEN_NOT_VALID_ERROR;
-					throw new Error(res);
+					throw res;
 				}
 				if (user.role === "admin") {
-					res['success'] = true;
+					res.success = true;
 					return res;
 				} else {
 					res.status = HttpStatus.BAD_REQUEST;
 					res.message = messages.TOKEN_NOT_VALID_ERROR;
-					throw new Error(res);
+					throw res;
 				}
 			});
 		});

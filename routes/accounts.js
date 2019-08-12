@@ -20,6 +20,8 @@ router.get("/", async (req, res) => {
 												 // it can't be deleted from the db and i dont want to recreate the whole object.
 		return res.json(accounts);
 	} catch (err) {
+		// console.log(err.message);
+		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const message = err.message || messages.UNKNOWN_ERROR;
 		return res.status(status).json(message);
