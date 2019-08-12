@@ -1,7 +1,7 @@
 const express = require("express");
 const HttpStatus = require("http-status-codes");
 
-const messages = require("../consts/messages");
+const resData = require("../consts/resData");
 const mongodbUser = require("../utils/mongodb/user");
 const mongodbSettings = require("../utils/mongodb/settings");
 const validateSettingsInput = require("../utils/validation/settings");
@@ -26,11 +26,11 @@ router.put("/accounts/:id", async (req, res) => {
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		await updateUserAccounts(userId, req.body.accounts);
-		return res.json(messages.GENERAL_SUCCESS);
+		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const resMessages = err || messages.UNKNOWN_ERROR;
-		return res.status(status).json(resMessages);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -102,8 +102,8 @@ router.get("/accounts/:id", async (req, res) => {
 		return res.json(userAccounts);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -119,8 +119,8 @@ router.get("/admin/:id", async (req, res) => {
 		return res.json({ admin: admin });
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -136,8 +136,8 @@ router.get("/:id", async (req, res) => {
 		return res.json(userFromDatabase);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -152,11 +152,11 @@ router.put("/settings/:id", async (req, res) => {
 		const valid = validateSettingsInput(req.body);		
 		if (!valid.success) throw valid;
 		await updateUserSettings(userId, req.body, user.id !== userId);
-		return res.json(messages.GENERAL_SUCCESS);
+		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 

@@ -15,7 +15,6 @@ module.exports = function validateRegisterInput(data) {
 	} else if (!Validator.isEmail(data.email)) {
 		messages.push("Email is invalid");
 	}
-	console.log(messages);
 	
 	return {
 		messages,

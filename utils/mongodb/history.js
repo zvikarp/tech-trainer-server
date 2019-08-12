@@ -1,4 +1,4 @@
-const messages = require("../../consts/messages");
+const resData = require("../../consts/resData");
 const History = require("../../models/History");
 const HttpStatus = require('http-status-codes');
 
@@ -9,10 +9,10 @@ function getByUserId(userId) {
 }
 
 function documentNotFound() {
-	throw new Error({
+	throw {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
-		message: messages.DOCUMENT_NOT_FOUND,
-	});
+		data: resData.DOCUMENT_NOT_FOUND,
+	};
 }
 
 module.exports = { getByUserId };

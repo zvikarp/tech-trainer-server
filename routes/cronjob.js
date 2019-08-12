@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require("axios");
 const HttpStatus = require("http-status-codes");
 
-const messages = require("../consts/messages");
+const resData = require("../consts/resData");
 const User = require("../models/User");
 const History = require("../models/History");
 const verifier = require("../utils/verifier");
@@ -146,11 +146,11 @@ router.post("/updatepoints", async (req, res) => {
 		const accounts = settings.accounts;
 		const chart = await updateChartByUsers(users, accounts);
 		await mongodbChart.put(chart.top3, chart.passed, chart.under);
-		return res.json(messages.GENERAL_SUCCESS);
+		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -188,11 +188,11 @@ router.post("/updateuserspoints/:id", async (req, res) => {
 		const accounts = settings.accounts;
 		const chart = await updateChartByUser(user, accounts);		
 		await mongodbChart.put(chart.top3, chart.passed, chart.under);
-		return res.json(messages.GENERAL_SUCCESS);
+		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 

@@ -1,5 +1,5 @@
 const documents = require("../../consts/documents");
-const messages = require("../../consts/messages");
+const resData = require("../../consts/resData");
 const Settings = require("../../models/Settings");
 const HttpStatus = require('http-status-codes');
 
@@ -19,10 +19,10 @@ function put(accounts) {
 }
 
 function documentNotFound() {
-	throw new Error({
+	throw {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
-		message: messages.DOCUMENT_NOT_FOUND,
-	});
+		data: resData.DOCUMENT_NOT_FOUND,
+	};
 }
 
 module.exports = { get, put };

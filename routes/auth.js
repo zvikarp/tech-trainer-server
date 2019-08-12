@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const HttpStatus = require('http-status-codes');
 
 const config = require("../config/config");
-const messages = require("../consts/messages");
+const resData = require("../consts/resData");
 const User = require("../models/User");
 const validateRegisterInput = require("../utils/validation/register");
 const validateLoginInput = require("../utils/validation/login");
@@ -34,8 +34,8 @@ router.post("/register", (req, res) => {
 					if (err) throw err;
 					newUser.password = hash;
 					newUser.save()
-						.then(user => {res.json(user);})
-						.catch(err => {res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(messages.UNKNOWN_ERROR)});
+						.then(user => { res.json(user); })
+						.catch(err => { res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(resData.UNKNOWN_ERROR) });
 				});
 			});
 		}

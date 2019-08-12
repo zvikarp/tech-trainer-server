@@ -1,7 +1,7 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const messages = require("../consts/messages");
+const resData = require("../consts/resData");
 const mongodbSettings = require("../utils/mongodb/settings");
 const verifier = require("../utils/verifier");
 const validateAccounts = require("../utils/validation/accounts");
@@ -20,11 +20,9 @@ router.get("/", async (req, res) => {
 												 // it can't be deleted from the db and i dont want to recreate the whole object.
 		return res.json(accounts);
 	} catch (err) {
-		// console.log(err.message);
-		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -39,12 +37,12 @@ router.put("/", async (req, res) => {
 		const recivedAccounts = req.body.accounts;
 		const updatedAccounts = getUpdatedAccountsArray(serverAccounts, recivedAccounts);
 		await mongodbSettings.put(updatedAccounts);
-		return res.json(messages.GENERAL_SUCCESS);
+		return res.json(resData.GENERAL_SUCCESS);
 	}
 	catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
@@ -54,10 +52,10 @@ function getUpdatedAccountsArray(serverAccounts, recivedAccounts) {
 		const oldAccount = getAccountFromServerArray(serverAccounts, account, accountId);
 		const accountValid = validateAccounts(oldAccount, account);
 		if (!accountValid.success) {
-			throw new Error({
+			throw {
 				status: HttpStatus.BAD_REQUEST,
-				message: messages,
-			});
+				data: resData.UNKNOWN_ERROR,
+			};
 		}
 		serverAccounts = updateServerArray(serverAccounts, account, accountId);
 	});
@@ -68,10 +66,10 @@ function getAccountFromServerArray(serverAccounts, account, accountId) {
 	const isNew = account.action === 'new';
 	const isInDatabase = serverAccounts[accountId] !== undefined;
 	if (isNew === isInDatabase) {
-		throw new Error({
+		throw {
 			status: HttpStatus.BAD_REQUEST,
-			message: messages.UNKNOWN_ERROR,
-		});
+			data: resData.UNKNOWN_ERROR,
+		};
 	}
 	return serverAccounts[accountId] || account;
 }

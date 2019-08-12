@@ -1,17 +1,17 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
-const messages = require("../consts/messages")
+const resData = require("../consts/resData")
 const HttpStatus = require('http-status-codes');
 
 async function user(token) {
 	var res = {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
-		message: messages.UNKNOWN_ERROR,
+		data: resData.UNKNOWN_ERROR,
 	};
 	try {
 		if (!token) {
 			res.status = HttpStatus.BAD_REQUEST;
-			res.message = messages.TOKEN_NOT_SUPPLIED_ERROR;
+			res.data = resData.TOKEN_NOT_SUPPLIED_ERROR;
 			throw res;
 		}
 		if (token.startsWith('Bearer ')) {
@@ -20,7 +20,7 @@ async function user(token) {
 		return jwt.verify(token, config.key, (err, decoded) => {
 			if (err) {
 				res.status = HttpStatus.BAD_REQUEST;
-				res.message = messages.TOKEN_NOT_VALID_ERROR;
+				res.data = resData.TOKEN_NOT_VALID_ERROR;
 				throw res;
 			}
 			res = decoded;
@@ -35,12 +35,12 @@ async function user(token) {
 function admin(token, callback) {
 	var res = {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
-		message: messages.UNKNOWN_ERROR,
+		data: resData.UNKNOWN_ERROR,
 	};
 	try {
 		if (!token) {
 			res.status = HttpStatus.BAD_REQUEST;
-			res.message = messages.TOKEN_NOT_SUPPLIED_ERROR;
+			res.data = resData.TOKEN_NOT_SUPPLIED_ERROR;
 			throw res;
 		}
 		if (token.startsWith('Bearer ')) {
@@ -49,7 +49,7 @@ function admin(token, callback) {
 		return jwt.verify(token, config.key, (err, decoded) => {
 			if (err) {
 				res.status = HttpStatus.BAD_REQUEST;
-				res.message = messages.TOKEN_NOT_VALID_ERROR;
+				res.data = resData.TOKEN_NOT_VALID_ERROR;
 				throw res;
 			}
 			res = decoded;
@@ -57,7 +57,7 @@ function admin(token, callback) {
 			User.findOne({ _id: uid }).then(user => {
 				if (!user) {
 					res.status = HttpStatus.BAD_REQUEST;
-					res.message = messages.TOKEN_NOT_VALID_ERROR;
+					res.data = resData.TOKEN_NOT_VALID_ERROR;
 					throw res;
 				}
 				if (user.role === "admin") {
@@ -65,7 +65,7 @@ function admin(token, callback) {
 					return res;
 				} else {
 					res.status = HttpStatus.BAD_REQUEST;
-					res.message = messages.TOKEN_NOT_VALID_ERROR;
+					res.data = resData.TOKEN_NOT_VALID_ERROR;
 					throw res;
 				}
 			});

@@ -1,7 +1,7 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
-const messages = require("../consts/messages");
+const resData = require("../consts/resData");
 const mongodbChart = require("../utils/mongodb/chart");
 
 const router = express.Router();
@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 		return res.json(chart);
 	} catch (err) {		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 

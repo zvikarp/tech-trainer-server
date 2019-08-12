@@ -18,8 +18,8 @@ router.get('/:id', async (req, res) => {
 		return res.json(historyArray);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
-		const message = err.message || messages.UNKNOWN_ERROR;
-		return res.status(status).json(message);
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 });
 
