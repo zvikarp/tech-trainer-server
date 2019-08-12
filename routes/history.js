@@ -3,6 +3,7 @@ const HttpStatus = require('http-status-codes');
 
 const mongodbHistory = require("../utils/mongodb/history");
 const verifier = require("../utils/verifier");
+const consts = require("../consts/consts");
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 // desc:   api gets user history
 router.get('/:id', async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers['authorization']);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const historyArray = await mongodbHistory.getByUserId(userId);

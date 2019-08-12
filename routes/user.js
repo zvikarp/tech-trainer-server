@@ -7,6 +7,7 @@ const mongodbSettings = require("../utils/mongodb/settings");
 const validateSettingsInput = require("../utils/validation/settings");
 const validateWebsites = require("../utils/validation/websites");
 const verifier = require("../utils/verifier");
+const consts = require("../consts/consts");
 
 const router = express.Router();
 
@@ -22,7 +23,7 @@ async function asyncForEach(array, callback) {
 // desc:   api updates the users connected accounts.
 router.put("/accounts/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["authorization"]);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		await updateUserAccounts(userId, req.body.accounts);
@@ -95,7 +96,7 @@ async function updateUserAccounts(userId, newAccounts) {
 // desc:   api gets the users connected accounts.
 router.get("/accounts/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["authorization"]);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const userFromDatabase = await mongodbUser.get(userId);
@@ -113,7 +114,7 @@ router.get("/accounts/:id", async (req, res) => {
 // desc:   api return if current user is admin or not
 router.get("/admin/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["authorization"]);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		const userFromDatabase = await mongodbUser.get(userId);
 		var admin = userFromDatabase.role === "admin";
@@ -130,7 +131,7 @@ router.get("/admin/:id", async (req, res) => {
 // desc:   api return current user detailes
 router.get("/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["authorization"]);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const userFromDatabase = await mongodbUser.get(userId);
@@ -147,7 +148,7 @@ router.get("/:id", async (req, res) => {
 // desc:   api updates the users settings.
 router.put("/settings/:id", async (req, res) => {
 	try {
-		const user = await verifier.user(req.headers["authorization"]);
+		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
 		const validSettings = validateSettingsInput(req.body);

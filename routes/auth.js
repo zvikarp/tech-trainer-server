@@ -6,16 +6,16 @@ const HttpStatus = require('http-status-codes');
 const config = require("../config/config");
 const resData = require("../consts/resData");
 const User = require("../models/User");
-const validateRegisterInput = require("../utils/validation/register");
-const validateLoginInput = require("../utils/validation/login");
+const validateSignupInput = require("../utils/validation/signup");
+const validateSigninInput = require("../utils/validation/signin");
 
 const router = express.Router();
 
-// route:  POST api/auth/register
+// route:  POST api/auth/signup
 // access: Public
-// desc:   Register user
-router.post("/register", (req, res) => {
-	const { errors, isValid } = validateRegisterInput(req.body);
+// desc:   Signup user
+router.post("/signup", (req, res) => {
+	const { errors, isValid } = validateSignupInput(req.body);
 	if (!isValid) {
 		return res.status(HttpStatus.FORBIDDEN).json(errors);
 	}
@@ -43,11 +43,11 @@ router.post("/register", (req, res) => {
 });
 
 
-// route:  POST api/auth/login
+// route:  POST api/auth/signin
 // access: Public
-// desc:   login user and return token
-router.post("/login", (req, res) => {
-	const { errors, isValid } = validateLoginInput(req.body);
+// desc:   Signin user and return token
+router.post("/signin", (req, res) => {
+	const { errors, isValid } = validateSigninInput(req.body);
 	if (!isValid) {
 		return res.status(HttpStatus.FORBIDDEN).json(errors);
 	}

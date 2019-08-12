@@ -1,10 +1,10 @@
-const documents = require("../../consts/documents");
+const consts = require("../../consts/consts");
 const resData = require("../../consts/resData");
 const Chart = require("../../models/Chart");
 const HttpStatus = require("http-status-codes");
 
 function get() {
-	return Chart.findById(documents.CHART)
+	return Chart.findById(consts.CHART_DOCUMENT)
 		.then(chart => {
 			return chart;
 		})
@@ -13,7 +13,7 @@ function get() {
 
 function put(top3, passed, under) {
 	return Chart.findOneAndUpdate(
-		{ _id: documents.CHART },
+		{ _id: consts.CHART_DOCUMENT },
 		{
 			$set: {
 				top3: top3,

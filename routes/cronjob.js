@@ -9,6 +9,7 @@ const verifier = require("../utils/verifier");
 const mongodbUser = require("../utils/mongodb/user");
 const mongodbSettings = require("../utils/mongodb/settings");
 const mongodbChart = require("../utils/mongodb/chart");
+const consts = require("../consts/consts");
 
 const router = express.Router();
 const passingPoints = 50;
@@ -140,7 +141,7 @@ async function getUsersPoints(user, accounts) {
 // desc:   api re-calcs the top chart
 router.post("/updatepoints", async (req, res) => {
 	try {
-		await verifier.admin(req.headers["authorization"]);
+		await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const settings = await mongodbSettings.get();
 		const users = await mongodbUser.getAll();
 		const accounts = settings.accounts;
@@ -181,7 +182,7 @@ function orderChart(chart) {
 // desc:   api re-calcs the top chart by just calculating one user
 router.post("/updateuserspoints/:id", async (req, res) => {
 	try {
-		await verifier.user(req.headers["authorization"]);
+		await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		const user = await mongodbUser.get(userId);
 		const settings = await mongodbSettings.get();

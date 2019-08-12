@@ -1,4 +1,3 @@
-const documents = require("../../consts/documents");
 const resData = require("../../consts/resData");
 const User = require("../../models/User");
 const HttpStatus = require('http-status-codes');

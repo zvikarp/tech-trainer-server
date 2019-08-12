@@ -1,6 +1,7 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
 
+const consts = require("../consts/consts");
 const resData = require("../consts/resData");
 const mongodbSettings = require("../utils/mongodb/settings");
 const verifier = require("../utils/verifier");
@@ -13,7 +14,7 @@ const router = express.Router();
 // desc:   api returns all types of accounts
 router.get("/", async (req, res) => {
 	try {
-		await verifier.user(req.headers['authorization']);
+		await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
 		delete accounts._id; // NOTE: the `_id` is NOT supposed to be there.
@@ -31,7 +32,7 @@ router.get("/", async (req, res) => {
 // desc:   api updates the accounts info
 router.put("/", async (req, res) => {
 	try {
-		await verifier.admin(req.headers['authorization']);
+		await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const settings = await mongodbSettings.get();
 		const serverAccounts = settings.accounts;
 		const recivedAccounts = req.body.accounts;
