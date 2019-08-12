@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
 		delete accounts._id; // NOTE: the `_id` is NOT supposed to be there.
-												 // it can't be deleted from the db and i dont want to recreate the whole object.
+		// it can't be deleted from the db and i dont want to recreate the whole object.
 		return res.json(accounts);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
@@ -52,10 +52,7 @@ function getUpdatedAccountsArray(serverAccounts, recivedAccounts) {
 		const oldAccount = getAccountFromServerArray(serverAccounts, account, accountId);
 		const accountValid = validateAccounts(oldAccount, account);
 		if (!accountValid.success) {
-			throw {
-				status: HttpStatus.BAD_REQUEST,
-				data: resData.UNKNOWN_ERROR,
-			};
+			throw { status: HttpStatus.BAD_REQUEST, data: accountValid };
 		}
 		serverAccounts = updateServerArray(serverAccounts, account, accountId);
 	});

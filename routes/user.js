@@ -21,7 +21,7 @@ async function asyncForEach(array, callback) {
 // access: User/Admin
 // desc:   api updates the users connected accounts.
 router.put("/accounts/:id", async (req, res) => {
-	try {		
+	try {
 		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
@@ -47,9 +47,10 @@ async function updateAndValidateUserAccount(
 	accountId
 ) {
 	const isWebsite = newAccount !== "" && serverAccount.type === "website";
-	const valid =
-		!isWebsite || (await validateWebsites(serverAccount.name, newAccount));
-	if (valid !== true && !valid.success) throw valid;
+	const validWebsite = !isWebsite || (await validateWebsites(serverAccount.name, newAccount));
+	if (validWebsite !== true && !validWebsite.success) {
+		throw { status: HttpStatus.BAD_REQUEST, data: validWebsite };
+	}
 	userAccounts[accountId] = newAccount;
 	return userAccounts;
 }
@@ -149,8 +150,10 @@ router.put("/settings/:id", async (req, res) => {
 		const user = await verifier.user(req.headers["authorization"]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
-		const valid = validateSettingsInput(req.body);		
-		if (!valid.success) throw valid;
+		const validSettings = validateSettingsInput(req.body);
+		if (!validSettings.success) {
+			throw { status: HttpStatus.BAD_REQUEST, data: validSettings };
+		}
 		await updateUserSettings(userId, req.body, user.id !== userId);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
