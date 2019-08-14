@@ -1,7 +1,7 @@
 module.exports = {
 
 	// the header that identifies the user
-	AUTH_HEADER: "Authorization",
+	AUTH_HEADER: "authorization",
 
 	// documents
 	CHART_DOCUMENT: '5d2ed28f1c9d440000552aaa',
