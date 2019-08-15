@@ -11,7 +11,7 @@ function get() {
 		.catch(err => documentNotFound());
 }
 
-function put(top3, passed, under) {
+function post(chart) {
 	return Chart.findOneAndUpdate(
 		{ _id: consts.CHART_DOCUMENT },
 		{

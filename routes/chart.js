@@ -60,19 +60,6 @@ async function asyncForEach(array, callback) {
 	}
 }
 
-// sort by points of user in array
-function sortUsersByPoints(a, b) {
-	if (a.points > b.points) return -1;
-	return 1;
-}
-
-// remove user by id from array
-function removeUserFromArrayById(array, id) {
-	return array.filter(function(child) {
-		return child.id !== id;
-	});
-}
-
 async function getUsersPoints(user, accounts) {
 	var userPoints = {};
 	user.points = 0;
@@ -117,6 +104,7 @@ async function getUsersPoints(user, accounts) {
 		return userPoints;
 	});
 
+	// TODO: the next line shouldnt be here
 	await User.findOneAndUpdate(
 		{ _id: user.id },
 		{ $set: { points: user.points } }
@@ -146,7 +134,12 @@ router.post("/", async (req, res) => {
 		const users = await mongodbUser.getAll();
 		const accounts = settings.accounts;
 		const chart = await updateChartByUsers(users, accounts);
-		await mongodbChart.put(chart.top3, chart.passed, chart.under);
+		// await mongodbChart.post(chart); // TODO: test it...
+		const updateChart = new Chart({
+			users: chart,
+			timestamp: Date.now()
+		});
+		await updateChart.save();
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
@@ -156,24 +149,11 @@ router.post("/", async (req, res) => {
 });
 
 async function updateChartByUsers(users, accounts) {
-	var chart = { top3: [], passed: [], under: [] };
+	var chart = [];
 	await asyncForEach(users, async user => {
 		const userObject = await getUsersPoints(user, accounts);
-		chart = addToChart(chart, passingPoints, userObject);
+		chart.push(userObject);
 	});
-	return orderChart(chart);
-}
-
-function addToChart(chart, passing, user) {
-	if (user.points >= passing) chart.passed.push(user);
-	else chart.under.push(user);
-	return chart;
-}
-
-function orderChart(chart) {
-	chart.passed.sort(sortUsersByPoints);
-	chart.under.sort(sortUsersByPoints);
-	chart.top3 = chart.passed.splice(0, 3);
 	return chart;
 }
 
