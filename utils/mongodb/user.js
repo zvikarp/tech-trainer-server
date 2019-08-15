@@ -21,8 +21,8 @@ function getByEmail(email) {
 }
 
 function getAll() {
-	return User.find({}).then(user => {
-		return user;
+	return User.find({}).then(users => {
+		return users;
 	}).catch(err => documentNotFound());
 }
 

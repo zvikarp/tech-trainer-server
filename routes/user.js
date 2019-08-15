@@ -134,7 +134,8 @@ router.get("/:id", async (req, res) => {
 		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
 		if (user.id !== userId) await verifier.admin(user.id);
-		const userFromDatabase = await mongodbUser.get(userId);
+		var userFromDatabase = await mongodbUser.get(userId);
+		delete userFromDatabase.password;
 		return res.json(userFromDatabase);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
