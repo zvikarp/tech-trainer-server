@@ -200,12 +200,26 @@ async function updateChart(user, accounts) {
 	return chart;
 }
 
-// route:  GET api/chart/
+// route:  GET api/chart/last
 // access: Public
-// desc:   api return the current chart
+// desc:   api return the last chart
 router.get('/last', async (req, res) => {
 	try {
 		const chart = await mongodbChart.getLast();
+		return res.json(chart);
+	} catch (err) {		
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
+	}
+});
+
+// route:  GET api/chart/
+// access: Public
+// desc:   api return all charts (last 25)
+router.get('/', async (req, res) => {
+	try {
+		const chart = await mongodbChart.get();
 		return res.json(chart);
 	} catch (err) {		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;

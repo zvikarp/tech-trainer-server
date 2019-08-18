@@ -13,6 +13,14 @@ function getLast() {
 		.catch(err => documentNotFound());
 }
 
+function get() {
+	return Chart.find({ $query: {}, $orderby: { $timestamp: -1 } }).limit(25)
+		.then(chart => {
+			return chart;
+		})
+		.catch(err => documentNotFound());
+}
+
 function putLast(chart) {
 	return Chart.findOneAndUpdate(
 		{}, { $set: { timestamp: chart.timestamp, users: chart.users }, $orderby: { $timestamp: -1 } }
@@ -31,4 +39,4 @@ function documentNotFound() {
 	};
 }
 
-module.exports = { getLast, putLast, post };
+module.exports = { get, getLast, putLast, post };
