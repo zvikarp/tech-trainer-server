@@ -18,7 +18,8 @@ mongoose
 	.then(() => console.log("MongoDB successfully connected"))
 	.catch(err => console.log(err));
 mongoose.Promise = global.Promise;
-mongoose.set('useFindAndModify', false);
+mongoose.set('useFindAndModify', true);
+mongoose.set('debug', true);
 
 const app = express();
 

@@ -116,7 +116,7 @@ async function getUsersPoints(user, accounts) {
 		points: user.points,
 		accounts: userPoints
 	});
-	await userHistory.save();
+	await userHistory.save(); //TODO: and this one
 	return {
 		id: user.id,
 		name: user.name,
@@ -133,13 +133,12 @@ router.post("/", async (req, res) => {
 		const settings = await mongodbSettings.get();
 		const users = await mongodbUser.getAll();
 		const accounts = settings.accounts;
-		const chart = await updateChartByUsers(users, accounts);
-		// await mongodbChart.post(chart); // TODO: test it...
-		const updateChart = new Chart({
+		const chart = await getChart(users, accounts);
+		const newChart = new Chart({
 			users: chart,
 			timestamp: Date.now()
 		});
-		await updateChart.save();
+		await mongodbChart.post(newChart);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
@@ -148,7 +147,14 @@ router.post("/", async (req, res) => {
 	}
 });
 
-async function updateChartByUsers(users, accounts) {
+// remove user by id from array
+function removeUserFromArrayById(array, id) {
+	return array.filter(function(child) {
+		return child.id !== id;
+	});
+}
+
+async function getChart(users, accounts) {
 	var chart = [];
 	await asyncForEach(users, async user => {
 		const userObject = await getUsersPoints(user, accounts);
@@ -159,7 +165,7 @@ async function updateChartByUsers(users, accounts) {
 
 // route:  PUT api/chart/last/:id
 // access: User
-// desc:   api re-calcs the top chart by just calculating one user
+// desc:   api updates a specific users points in last chart
 router.put("/last/:id", async (req, res) => {
 	try {
 		await verifier.user(req.headers[consts.AUTH_HEADER]);
@@ -167,24 +173,27 @@ router.put("/last/:id", async (req, res) => {
 		const user = await mongodbUser.get(userId);
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
-		const chart = await updateChartByUser(user, accounts);		
-		await mongodbChart.put(chart.top3, chart.passed, chart.under);
+		const updatedChart = await updateChart(user, accounts);		
+		await mongodbChart.putLast(updatedChart);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
+		console.log(err);
+		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const data = err.data || resData.UNKNOWN_ERROR;
 		return res.status(status).json(data);
 	}
 });
 
-async function updateChartByUser(user, accounts) {
-	var chart = await mongodbChart.get();
-	chart.passed = chart.passed.concat(chart.top3);	
+async function updateChart(user, accounts) {
+	const returndChart = await mongodbChart.getLast();
+	
+	var chart = Array.prototype.slice.call(returndChart.users);
 	const userObject = await getUsersPoints(user, accounts);
-	chart.passed = removeUserFromArrayById(chart.passed, user.id);
-	chart.under = removeUserFromArrayById(chart.under, user.id);
-	chart = addToChart(chart, passingPoints, userObject);
-	return orderChart(chart);
+	
+	chart = removeUserFromArrayById(chart, user.id);
+	chart.push(userObject);
+	return chart;
 }
 
 // route:  GET api/chart/
@@ -192,7 +201,7 @@ async function updateChartByUser(user, accounts) {
 // desc:   api return the current chart
 router.get('/last', async (req, res) => {
 	try {
-		const chart = await mongodbChart.get();
+		const chart = await mongodbChart.getLast();
 		return res.json(chart);
 	} catch (err) {		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;

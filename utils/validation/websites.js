@@ -22,8 +22,7 @@ module.exports = async function validateWebsites(website, username) {
 				"https://api.stackexchange.com/2.2/users/" +
 				username +
 				"?site=stackoverflow"
-			).then(res => { console.log("Gdfgdfgdfgfd");
-			}).catch(err => {
+			).then(res => { }).catch(err => {
 				messages.push("Stackoverflow account not found");
 			});
 			break;
