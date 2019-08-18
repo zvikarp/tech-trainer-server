@@ -27,7 +27,8 @@ router.post("/signup", async (req, res) => {
 		const newUser = new User({
 			name: user.name,
 			email: user.email,
-			password: user.password
+			password: user.password,
+			role: user.admin ? 'admin' : 'user' // PROD-NOTE: remove this line in produnction
 		});
 		const salt = await bcrypt.genSalt(10); // TODO: move to seperate function (or even file) and have custon error return
 		const hash = await bcrypt.hash(newUser.password, salt); // TODO: move to seperate function (or even file) and have custon error return
