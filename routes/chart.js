@@ -173,7 +173,11 @@ router.put("/last/:id", async (req, res) => {
 		const user = await mongodbUser.get(userId);
 		const settings = await mongodbSettings.get();
 		const accounts = settings.accounts;
-		const updatedChart = await updateChart(user, accounts);		
+		const chart = await updateChart(user, accounts);
+		const updatedChart = new Chart({
+			users: chart,
+			timestamp: Date.now()
+		});
 		await mongodbChart.putLast(updatedChart);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {

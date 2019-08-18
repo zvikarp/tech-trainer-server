@@ -3,6 +3,8 @@ const resData = require("../../consts/resData");
 const Chart = require("../../models/Chart");
 const HttpStatus = require("http-status-codes");
 
+// TODO: Better return values, on success and error also in other routes.
+
 function getLast() {
 	return Chart.findOne({ $query: {}, $orderby: { $timestamp: -1 } })
 		.then(chart => {
@@ -12,15 +14,9 @@ function getLast() {
 }
 
 function putLast(chart) {
-	
 	return Chart.findOneAndUpdate(
-		{}, 
-		{ $set: { chart } },
-		{ upsert: true, sort: { timestamp: -1 } })
-		.then(chart => {
-			console.log(chart);
-			return true;
-		})
+		{}, { $set: { timestamp: chart.timestamp, users: chart.users }, $orderby: { $timestamp: -1 } }
+	).then(chart => chart)
 		.catch(err => documentNotFound());
 }
 
