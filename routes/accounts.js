@@ -11,7 +11,7 @@ const router = express.Router();
 
 // route:  GET api/accounts/
 // access: Authed
-// desc:   api returns all types of accounts
+// desc:   api returns all settings
 router.get("/", async (req, res) => {
 	try {
 		await verifier.user(req.headers[consts.AUTH_HEADER]);
@@ -27,17 +27,49 @@ router.get("/", async (req, res) => {
 	}
 });
 
-// route:  PUT api/accounts/
+// route:  GET api/accounts/
+// access: Public
+// desc:   api returns passing points
+router.get("/passing", async (req, res) => {
+	try {
+		const settings = await mongodbSettings.get();
+		const passing = settings.passing;
+		return res.json(passing);
+	} catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
+	}
+});
+
+// route:  PUT api/accounts/passing
 // access: Admin
-// desc:   api updates the accounts info
-router.put("/", async (req, res) => {
+// desc:   api updates the passing points
+router.put("/passing", async (req, res) => {
+	try {
+		await verifier.admin(req.headers[consts.AUTH_HEADER]);
+		const passing = req.body.passing;
+		await mongodbSettings.putPassing(passing);
+		return res.json(resData.GENERAL_SUCCESS);
+	}
+	catch (err) {
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
+	}
+});
+
+// route:  PUT api/accounts/accounts
+// access: Admin
+// desc:   api updates the settings
+router.put("/accounts", async (req, res) => {
 	try {
 		await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const settings = await mongodbSettings.get();
 		const serverAccounts = settings.accounts;
 		const recivedAccounts = req.body.accounts;
 		const updatedAccounts = getUpdatedAccountsArray(serverAccounts, recivedAccounts);
-		await mongodbSettings.put(updatedAccounts);
+		await mongodbSettings.putAccounts(updatedAccounts);
 		return res.json(resData.GENERAL_SUCCESS);
 	}
 	catch (err) {

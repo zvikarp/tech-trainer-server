@@ -24,4 +24,8 @@ router.get('/:id', async (req, res) => {
 	}
 });
 
+// TODO: move history add (and update) to here
+// TODO: when user edits history, make it change the last, not create a new one
+// TODO: when user signs up, add him to chart and create history 
+
 module.exports = router;

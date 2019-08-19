@@ -9,10 +9,19 @@ function get() {
 	}).catch(err => documentNotFound());
 }
 
-function put(accounts) {
+function putAccounts(accounts) {
 	return Settings.findOneAndUpdate(
 		{ _id: consts.ACCOUNTS_DOCUMENT },
 		{ $set: { accounts: accounts } },
+		{ upsert: true }).then(settings => {
+			return true;
+		}).catch(err => documentNotFound());
+}
+
+function putPassing(passing) {
+	return Settings.findOneAndUpdate(
+		{ _id: consts.ACCOUNTS_DOCUMENT },
+		{ $set: { passing: passing } },
 		{ upsert: true }).then(settings => {
 			return true;
 		}).catch(err => documentNotFound());
@@ -25,4 +34,4 @@ function documentNotFound() {
 	};
 }
 
-module.exports = { get, put };
+module.exports = { get, putAccounts, putPassing };

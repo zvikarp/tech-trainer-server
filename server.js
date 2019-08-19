@@ -7,7 +7,6 @@ const auth = require("./routes/auth");
 const chart = require("./routes/chart");
 const user = require("./routes/user");
 const accounts = require("./routes/accounts");
-const cronjob = require("./routes/cronjob");
 const history = require("./routes/history");
 const config = require("./config/config");
 const mongoURI = require("./config/config").mongoURI;
@@ -19,6 +18,7 @@ mongoose
 	.catch(err => console.log(err));
 mongoose.Promise = global.Promise;
 mongoose.set('useFindAndModify', false);
+mongoose.set('debug', false);
 
 const app = express();
 
@@ -43,7 +43,6 @@ app.use("/api/auth", auth);
 app.use("/api/user", user);
 app.use("/api/accounts", accounts);
 app.use("/api/chart", chart);
-app.use("/api/cronjob", cronjob);
 app.use("/api/history", history);
 
 app.listen(config.port, () =>

@@ -3,31 +3,33 @@ const resData = require("../../consts/resData");
 const Chart = require("../../models/Chart");
 const HttpStatus = require("http-status-codes");
 
-function get() {
-	return Chart.findById(consts.CHART_DOCUMENT)
+// TODO: Better return values, on success and error also in other routes.
+
+function getLast() {
+	return Chart.findOne({ $query: {}, $orderby: { $timestamp: -1 } })
 		.then(chart => {
 			return chart;
 		})
 		.catch(err => documentNotFound());
 }
 
-function put(top3, passed, under) {
-	return Chart.findOneAndUpdate(
-		{ _id: consts.CHART_DOCUMENT },
-		{
-			$set: {
-				top3: top3,
-				passed: passed,
-				under: under,
-				lastUpdated: Date.now()
-			}
-		},
-		{ upsert: true }
-	)
+function get() {
+	return Chart.find({ $query: {}, $orderby: { $timestamp: -1 } }).limit(25)
 		.then(chart => {
-			return true;
+			return chart;
 		})
 		.catch(err => documentNotFound());
+}
+
+function putLast(chart) {
+	return Chart.findOneAndUpdate(
+		{}, { $set: { timestamp: chart.timestamp, users: chart.users }, $orderby: { $timestamp: -1 } }
+	).then(chart => chart)
+		.catch(err => documentNotFound());
+}
+
+function post(chart) {
+	return chart.save();
 }
 
 function documentNotFound() {
@@ -37,4 +39,4 @@ function documentNotFound() {
 	};
 }
 
-module.exports = { get, put };
+module.exports = { get, getLast, putLast, post };

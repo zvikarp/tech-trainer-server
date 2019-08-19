@@ -27,7 +27,8 @@ router.post("/signup", async (req, res) => {
 		const newUser = new User({
 			name: user.name,
 			email: user.email,
-			password: user.password
+			password: user.password,
+			role: user.admin ? 'admin' : 'user' // PROD-NOTE: remove this line in produnction
 		});
 		const salt = await bcrypt.genSalt(10); // TODO: move to seperate function (or even file) and have custon error return
 		const hash = await bcrypt.hash(newUser.password, salt); // TODO: move to seperate function (or even file) and have custon error return
@@ -62,6 +63,7 @@ router.post("/signin", async (req, res) => {
 
 async function signin(email, password, res) {
 	try {
+		
 		const emailExists = await mongodbUser.checkIfExistsByEmail(email);
 		if (!emailExists) throw { status: HttpStatus.BAD_REQUEST, data: resData.EMAIL_NOT_FOUND };
 		const userFromDatabase = await mongodbUser.getByEmail(email); // TODO: can merge this with the one above
@@ -78,7 +80,9 @@ async function signin(email, password, res) {
 			token: "Bearer " + token
 		});
 	} catch (err) {
-		throw err;
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 }
 

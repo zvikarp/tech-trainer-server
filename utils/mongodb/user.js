@@ -10,7 +10,7 @@ function get(userId) {
 
 function checkIfExistsByEmail(email) {
 	return User.find({ email }).then(docs => {
-		return (docs.length);
+		return (docs.length === 1);
 	}).catch(err => errorAccessingDatabase());
 }
 
