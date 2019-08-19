@@ -63,6 +63,7 @@ router.post("/signin", async (req, res) => {
 
 async function signin(email, password, res) {
 	try {
+		
 		const emailExists = await mongodbUser.checkIfExistsByEmail(email);
 		if (!emailExists) throw { status: HttpStatus.BAD_REQUEST, data: resData.EMAIL_NOT_FOUND };
 		const userFromDatabase = await mongodbUser.getByEmail(email); // TODO: can merge this with the one above
@@ -79,7 +80,9 @@ async function signin(email, password, res) {
 			token: "Bearer " + token
 		});
 	} catch (err) {
-		throw err;
+		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
+		const data = err.data || resData.UNKNOWN_ERROR;
+		return res.status(status).json(data);
 	}
 }
 

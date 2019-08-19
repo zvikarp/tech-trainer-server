@@ -100,7 +100,7 @@ async function getUsersPoints(user, accounts) {
 					break;
 			}
 		}
-		userPoints.points = user.points;
+		userPoints['bonus points'] = user.bonusPoints;
 		return userPoints;
 	});
 
