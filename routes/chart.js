@@ -164,7 +164,7 @@ async function getChart(users, accounts) {
 }
 
 // route:  PUT api/chart/last/:id
-// access: User
+// access: Auth
 // desc:   api updates a specific users points in last chart
 router.put("/last/:id", async (req, res) => {
 	try {
