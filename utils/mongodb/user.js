@@ -53,6 +53,15 @@ function putSettings(userId, name, email, bonusPoints) {
 		}).catch(err => documentNotFound());
 }
 
+function putPoints(userId, points) {
+	return User.findOneAndUpdate(
+		{ _id: userId },
+		{ $set: {points } },
+		{ upsert: true }).then(user => {
+			return true;
+		}).catch(err => documentNotFound());
+}
+
 function documentNotFound() {
 	throw {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -67,4 +76,8 @@ function errorAccessingDatabase() {
 	};
 }
 
-module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail, getByEmail };
+function post(post) {
+	return post.save();
+}
+
+module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail, getByEmail, putPoints, post };

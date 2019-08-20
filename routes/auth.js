@@ -33,7 +33,7 @@ router.post("/signup", async (req, res) => {
 		const salt = await bcrypt.genSalt(10); // TODO: move to seperate function (or even file) and have custon error return
 		const hash = await bcrypt.hash(newUser.password, salt); // TODO: move to seperate function (or even file) and have custon error return
 		newUser.password = hash;
-		await newUser.save(); // TODO: move to user mongoose file
+		await mongodbUser.post(newUser); // TODO: move to user mongoose file
 		return signin(user.email, user.password, res);
 	} catch (err) {
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
