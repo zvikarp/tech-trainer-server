@@ -1,4 +1,3 @@
-const consts = require("../../consts/consts");
 const resData = require("../../consts/resData");
 const Chart = require("../../models/Chart");
 const HttpStatus = require("http-status-codes");

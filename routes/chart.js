@@ -2,6 +2,7 @@ const express = require("express");
 const HttpStatus = require('http-status-codes');
 const axios = require("axios");
 
+const websitesGithub = require("../utils/websites/github"); 
 const resData = require("../consts/resData");
 const User = require("../models/User");
 const History = require("../models/History");
@@ -12,46 +13,45 @@ const mongodbChart = require("../utils/mongodb/chart");
 const consts = require("../consts/consts");
 
 const router = express.Router();
-const passingPoints = 50;
 
-// gets the users repos from github via APIs
-async function getGithubPoints(username) {
-	try {
-		var res = await axios.get(
-			"https://api.github.com/users/" + username + "/repos"
-		);
-		return res.data.length;
-	} catch (error) {
-		return 0;
-	}
-}
+// // gets the users repos from github via APIs
+// async function getGithubPoints(username) {
+// 	try {
+// 		var res = await axios.get(
+// 			"https://api.github.com/users/" + username + "/repos"
+// 		);
+// 		return res.data.length;
+// 	} catch (error) {
+// 		return 0;
+// 	}
+// }
 
-// gets the users articels from medium via APIs
-async function getMediumPoints(username) {
-	try {
-		var res = await axios.get(
-			"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
-				username
-		);
-		return res.data.items.length;
-	} catch (error) {
-		return 0;
-	}
-}
+// // gets the users articels from medium via APIs
+// async function getMediumPoints(username) {
+// 	try {
+// 		var res = await axios.get(
+// 			"https://api.rss2json.com/v1/api.json?rss_url=https://medium.com/feed/@" +
+// 				username
+// 		);
+// 		return res.data.items.length;
+// 	} catch (error) {
+// 		return 0;
+// 	}
+// }
 
-// gets the users points from stackoverflow via APIs
-async function getStackoverflowPoints(username) {
-	try {
-		var res = await axios.get(
-			"https://api.stackexchange.com/2.2/users/" +
-				username +
-				"?site=stackoverflow"
-		);
-		return res.data.items[0].reputation;
-	} catch (error) {
-		return 0;
-	}
-}
+// // gets the users points from stackoverflow via APIs
+// async function getStackoverflowPoints(username) {
+// 	try {
+// 		var res = await axios.get(
+// 			"https://api.stackexchange.com/2.2/users/" +
+// 				username +
+// 				"?site=stackoverflow"
+// 		);
+// 		return res.data.items[0].reputation;
+// 	} catch (error) {
+// 		return 0;
+// 	}
+// }
 
 // converts a `forEach` function to a async one
 async function asyncForEach(array, callback) {
@@ -71,8 +71,8 @@ async function getUsersPoints(user, accounts) {
 		else {
 			switch (accounts[key].name) {
 				case "GitHub":
-					const githubPoints =
-						(await getGithubPoints(user.accounts[key])) * accounts[key].points;
+					const githubPoints = (await websitesGithub.get(user.accounts[key])) * accounts[key].points;
+						// (await getGithubPoints(user.accounts[key])) * accounts[key].points;
 					user.points = user.points + githubPoints;
 					if (githubPoints > 0) {
 						userPoints.github = githubPoints;
