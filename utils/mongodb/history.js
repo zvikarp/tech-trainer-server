@@ -14,7 +14,14 @@ function post(history) {
 
 function putInLastByUserId(history) {
 	return History.findOneAndUpdate(
-		{ userId: history.userId }, { $set: { history }, $orderby: { $timestamp: -1 } }
+		{ userId: history.userId }, {
+			$set: {
+				userId: history.userId,
+				timestamp: history.timestamp,
+				points: history.points,
+				accounts: history.accounts
+			}, $orderby: { $timestamp: -1 }
+		}
 	).then(history => history)
 		.catch(err => documentNotFound());
 }

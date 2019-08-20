@@ -3,6 +3,7 @@ const HttpStatus = require('http-status-codes');
 const axios = require("axios");
 
 const websitesGithub = require("../utils/websites/github");
+const apiCall = require("../utils/websites/apiCall");
 const websitesMedium = require("../utils/websites/medium");
 const websitesStackoverflow = require("../utils/websites/stackoverflow");
 const websitesWikipedia = require("../utils/websites/wikipedia");
@@ -29,6 +30,9 @@ async function getUsersPoints(user, accounts, shouldCreateNew = false) {
 	var userPoints = {};
 	user.points = 0;
 
+	console.log(user.accounts);
+	
+
 	await asyncForEach(Object.keys(user.accounts), async key => {
 		if (!accounts[key]);
 		else if (accounts[key].type !== "website");
@@ -36,7 +40,10 @@ async function getUsersPoints(user, accounts, shouldCreateNew = false) {
 		else {
 			switch (accounts[key].name) {
 				case "GitHub":
-					const githubPoints = (await websitesGithub.get(user.accounts[key])) * accounts[key].points;
+					const githubPoints = (await apiCall.get("https://api.github.com/users/", user.accounts[key], "/repos", ".length")) * accounts[key].points;
+					// const githubPoints = (await websitesGithub.get(user.accounts[key])) * accounts[key].points;
+					console.log(githubPoints);
+					
 					user.points = user.points + githubPoints;
 					if (githubPoints > 0) {
 						userPoints.github = githubPoints;
@@ -68,12 +75,13 @@ async function getUsersPoints(user, accounts, shouldCreateNew = false) {
 					break;
 			}
 		}
-		userPoints['bonus points'] = user.bonusPoints;
-		return userPoints;
 	});
+	
+	console.log(userPoints.github);
+	userPoints['bonus points'] = user.bonusPoints;
 
-	await mongodbUser.putPoints(user.id, user.points);
 	user.points += user.bonusPoints;
+	await mongodbUser.putPoints(user.id, user.points);
 	const userHistory = new History({
 		userId: user.id,
 		timestamp: Date.now(),
