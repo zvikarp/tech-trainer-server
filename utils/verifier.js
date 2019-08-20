@@ -71,7 +71,7 @@ function admin(token, callback) {
 			});
 		});
 	} catch (err) {
-		return res;
+		throw res;
 	}
 }
 

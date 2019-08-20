@@ -215,10 +215,11 @@ router.get('/last', async (req, res) => {
 });
 
 // route:  GET api/chart/
-// access: Public
+// access: Admin
 // desc:   api return all charts (last 25)
 router.get('/', async (req, res) => {
 	try {
+		await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const chart = await mongodbChart.get();
 		return res.json(chart);
 	} catch (err) {		
