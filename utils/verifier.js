@@ -32,7 +32,7 @@ async function user(token) {
 	}
 }
 
-function admin(token, callback) {
+function admin(token) {
 	var res = {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
 		data: resData.UNKNOWN_ERROR,

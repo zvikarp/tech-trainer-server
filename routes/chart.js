@@ -1,14 +1,8 @@
 const express = require("express");
 const HttpStatus = require('http-status-codes');
-const axios = require("axios");
 
-const websitesGithub = require("../utils/websites/github");
-const apiCall = require("../utils/websites/apiCall");
-const websitesMedium = require("../utils/websites/medium");
-const websitesStackoverflow = require("../utils/websites/stackoverflow");
-const websitesWikipedia = require("../utils/websites/wikipedia");
+const websitesApi = require("../utils/websites/api");
 const resData = require("../consts/resData");
-const User = require("../models/User");
 const History = require("../models/History");
 const verifier = require("../utils/verifier");
 const mongodbUser = require("../utils/mongodb/user");
@@ -26,76 +20,53 @@ async function asyncForEach(array, callback) {
 	}
 }
 
-async function getUsersPoints(user, accounts, shouldCreateNew = false) {
-	var userPoints = {};
-	user.points = 0;
-
-	console.log(user.accounts);
-	
+async function getUsersPoints(user, accounts) {
+	var userPointsPerAccount = {};
+	var pointsSum = 0;
 
 	await asyncForEach(Object.keys(user.accounts), async key => {
-		if (!accounts[key]);
-		else if (accounts[key].type !== "website");
-		else if (user.accounts[key] == "");
-		else {
-			switch (accounts[key].name) {
-				case "GitHub":
-					const githubPoints = (await apiCall.get("https://api.github.com/users/", user.accounts[key], "/repos", ".length")) * accounts[key].points;
-					// const githubPoints = (await websitesGithub.get(user.accounts[key])) * accounts[key].points;
-					console.log(githubPoints);
-					
-					user.points = user.points + githubPoints;
-					if (githubPoints > 0) {
-						userPoints.github = githubPoints;
-					}
-					break;
-				case "Medium":
-					const mediumPoints = (await websitesMedium.get(user.accounts[key])) * accounts[key].points;
-					user.points = user.points + mediumPoints;
-					if (mediumPoints > 0) {
-						userPoints.medium = mediumPoints;
-					}
-					break;
-				case "Stackoverflow":
-					const stackoverflowPoints = (await websitesStackoverflow.get(user.accounts[key])) * accounts[key].points;
-					user.points = user.points + stackoverflowPoints;
-					if (stackoverflowPoints > 0) {
-						userPoints.stackoverflow = stackoverflowPoints;
-					}
-					break;
-				case "Wikipedia":
-					const wikipediaPoints = (await websitesWikipedia.get(user.accounts[key])) * accounts[key].points;
-					user.points = user.points + wikipediaPoints;
-					if (wikipediaPoints > 0) {
-						userPoints.wikipedia = wikipediaPoints;
-					}
-					break;
-				default:
-					user.points += 0;
-					break;
-			}
+		const account = accounts[key];
+		const userAccount = user.accounts[key];
+		var pointsToAdd = 0;
+		switch (account.type) {
+			case "string":
+				if (userAccount !== "") {
+					pointsToAdd = account.points;
+				}
+				break;
+			case "number":
+				if (userAccountr > 0) {
+					pointsToAdd = userAccount * account.points;
+				}
+			case "api":
+				const userPointFromApi = (await websitesApi.get(account.prefix, userAccount, account.suffix, account.path));
+				pointsToAdd = userPointFromApi * account.points;
+			default:
+				break;
 		}
-	});
-	
-	console.log(userPoints.github);
-	userPoints['bonus points'] = user.bonusPoints;
 
-	user.points += user.bonusPoints;
-	await mongodbUser.putPoints(user.id, user.points);
+		userPointsPerAccount[account.name] = pointsToAdd;
+		pointsSum += pointsToAdd;
+	});
+
+	userPointsPerAccount['bonus points'] = user.bonusPoints;
+	pointsSum += user.bonusPoints;
+
+	await mongodbUser.putPoints(user.id, pointsSum);
 	const userHistory = new History({
 		userId: user.id,
 		timestamp: Date.now(),
-		points: user.points,
-		accounts: userPoints
+		points: pointsSum,
+		accounts: userPointsPerAccount
 	});
-	if (shouldCreateNew)
-		await mongodbHistory.post(userHistory);
-	else
+	// if (shouldCreateNew)
+	// 	await mongodbHistory.post(userHistory);
+	// else
 		await mongodbHistory.putInLastByUserId(userHistory);
 	return {
 		id: user.id,
 		name: user.name,
-		points: user.points
+		points: pointsSum
 	};
 }
 
@@ -116,6 +87,8 @@ router.post("/", async (req, res) => {
 		await mongodbChart.post(newChart);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
+		console.log(err);
+		
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const data = err.data || resData.UNKNOWN_ERROR;
 		return res.status(status).json(data);

@@ -73,6 +73,7 @@ router.put("/accounts", async (req, res) => {
 		return res.json(resData.GENERAL_SUCCESS);
 	}
 	catch (err) {
+		console.log(err);
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const data = err.data || resData.UNKNOWN_ERROR;
 		return res.status(status).json(data);
@@ -82,8 +83,8 @@ router.put("/accounts", async (req, res) => {
 function getUpdatedAccountsArray(serverAccounts, recivedAccounts) {
 	Object.keys(recivedAccounts).forEach(accountId => {
 		const account = recivedAccounts[accountId];
-		const oldAccount = getAccountFromServerArray(serverAccounts, account, accountId);
-		const accountValid = validateAccounts(oldAccount, account);
+		// const oldAccount = getAccountFromServerArray(serverAccounts, account, accountId);
+		const accountValid = validateAccounts(account);
 		if (!accountValid.success) {
 			throw { status: HttpStatus.BAD_REQUEST, data: accountValid };
 		}
@@ -92,17 +93,17 @@ function getUpdatedAccountsArray(serverAccounts, recivedAccounts) {
 	return serverAccounts;
 }
 
-function getAccountFromServerArray(serverAccounts, account, accountId) {
-	const isNew = account.action === 'new';
-	const isInDatabase = serverAccounts[accountId] !== undefined;
-	if (isNew === isInDatabase) {
-		throw {
-			status: HttpStatus.BAD_REQUEST,
-			data: resData.UNKNOWN_ERROR,
-		};
-	}
-	return serverAccounts[accountId] || account;
-}
+// function getAccountFromServerArray(serverAccounts, account, accountId) {
+// 	const isNew = account.action === 'new';
+// 	const isInDatabase = serverAccounts[accountId] !== undefined;
+// 	if (isNew === isInDatabase) {
+// 		throw {
+// 			status: HttpStatus.BAD_REQUEST,
+// 			data: resData.UNKNOWN_ERROR,
+// 		};
+// 	}
+// 	return serverAccounts[accountId] || account;
+// }
 
 function updateServerArray(serverAccounts, account, accountId) {
 	if (account.action === 'delete') {

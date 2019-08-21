@@ -13,6 +13,10 @@ function post(history) {
 }
 
 function putInLastByUserId(history) {
+	console.log(history);
+	
+// TODO: if no last create new
+
 	return History.findOneAndUpdate(
 		{ userId: history.userId }, {
 			$set: {

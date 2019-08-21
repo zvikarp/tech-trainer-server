@@ -3,6 +3,8 @@ const axios = require("axios");
 
 const pathParser = require("./pathParser");
 
+// TODO: use httpStatus
+
 async function get(urlPrefix, username, urlSuffix, path) {
 	try {
 		var res = await axios.get(urlPrefix + username + urlSuffix);
