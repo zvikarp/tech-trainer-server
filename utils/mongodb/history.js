@@ -13,10 +13,6 @@ function post(history) {
 }
 
 function putInLastByUserId(history) {
-	console.log(history);
-	
-// TODO: if no last create new
-
 	return History.findOneAndUpdate(
 		{ userId: history.userId }, {
 			$set: {
@@ -26,7 +22,9 @@ function putInLastByUserId(history) {
 				accounts: history.accounts
 			}, $orderby: { $timestamp: -1 }
 		}
-	).then(history => history)
+	).then(res => {
+		if (res == null) post(history);
+	})
 		.catch(err => documentNotFound());
 }
 

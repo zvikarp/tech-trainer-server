@@ -31,27 +31,29 @@ async function getUsersPoints(user, accounts) {
 		switch (account.type) {
 			case "string":
 				if (userAccount !== "") {
-					pointsToAdd = account.points;
+					pointsToAdd = account.points * 1;
 				}
 				break;
 			case "number":
-				if (userAccountr > 0) {
+				if (userAccount > 0) {
 					pointsToAdd = userAccount * account.points;
 				}
+				break
 			case "api":
 				const userPointFromApi = (await websitesApi.get(account.prefix, userAccount, account.suffix, account.path));
 				pointsToAdd = userPointFromApi * account.points;
+				break
 			default:
 				break;
 		}
 
 		userPointsPerAccount[account.name] = pointsToAdd;
-		pointsSum += pointsToAdd;
+		pointsSum += pointsToAdd;		
 	});
-
+	
 	userPointsPerAccount['bonus points'] = user.bonusPoints;
 	pointsSum += user.bonusPoints;
-
+	
 	await mongodbUser.putPoints(user.id, pointsSum);
 	const userHistory = new History({
 		userId: user.id,
@@ -59,6 +61,7 @@ async function getUsersPoints(user, accounts) {
 		points: pointsSum,
 		accounts: userPointsPerAccount
 	});
+	console.log(pointsSum);
 	// if (shouldCreateNew)
 	// 	await mongodbHistory.post(userHistory);
 	// else
