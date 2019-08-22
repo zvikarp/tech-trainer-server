@@ -26,9 +26,18 @@ async function getUsersPoints(user, accounts) {
 
 	await asyncForEach(Object.keys(user.accounts), async key => {
 		const account = accounts[key];
+		if (!account) return;
 		const userAccount = user.accounts[key];
 		var pointsToAdd = 0;
 		switch (account.type) {
+			case "list":
+				if (userAccount !== "") {
+					const numberOfItems = userAccount.split(",").length;
+					console.log(numberOfItems);
+					
+					pointsToAdd = numberOfItems * account.points;
+				}
+				break;
 			case "string":
 				if (userAccount !== "") {
 					pointsToAdd = account.points * 1;
@@ -61,11 +70,10 @@ async function getUsersPoints(user, accounts) {
 		points: pointsSum,
 		accounts: userPointsPerAccount
 	});
-	console.log(pointsSum);
 	// if (shouldCreateNew)
-	// 	await mongodbHistory.post(userHistory);
+		await mongodbHistory.post(userHistory);
 	// else
-		await mongodbHistory.putInLastByUserId(userHistory);
+		// await mongodbHistory.putInLastByUserId(userHistory);
 	return {
 		id: user.id,
 		name: user.name,
