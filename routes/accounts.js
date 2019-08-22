@@ -4,7 +4,7 @@ const HttpStatus = require('http-status-codes');
 const consts = require("../consts/consts");
 const resData = require("../consts/resData");
 const mongodbSettings = require("../utils/mongodb/settings");
-const verifier = require("../utils/verifier");
+const verifier = require("../utils/auth/verifier");
 const validateAccounts = require("../utils/validation/accounts");
 
 const router = express.Router();

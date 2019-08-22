@@ -44,10 +44,10 @@ function putAccounts(userId, accounts) {
 		}).catch(err => documentNotFound());
 }
 
-function putSettings(userId, name, email, bonusPoints) {
+function putSettings(userId, newSettings) {
 	return User.findOneAndUpdate(
 		{ _id: userId },
-		{ $set: { name, email, bonusPoints } },
+		{ $set: newSettings },
 		{ upsert: true }).then(user => {
 			return true;
 		}).catch(err => documentNotFound());

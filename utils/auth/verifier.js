@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
-const config = require("../config/config");
-const resData = require("../consts/resData")
 const HttpStatus = require('http-status-codes');
+
+const config = require("../../config/config");
+const resData = require("../../consts/resData")
 
 async function user(token) {
 	var res = {

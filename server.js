@@ -36,7 +36,7 @@ app.use(function(req, res, next) {
 
 // Passport middleware
 app.use(passport.initialize());
-require("./utils/passport")(passport);
+require("./utils/auth/passport")(passport);
 
 // Routes
 app.use("/api/auth", auth);
