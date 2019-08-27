@@ -1,7 +1,8 @@
 const jwt = require("jsonwebtoken");
-const config = require("../config/config");
-const resData = require("../consts/resData")
 const HttpStatus = require('http-status-codes');
+
+const config = require("../../config/config");
+const resData = require("../../consts/resData")
 
 async function user(token) {
 	var res = {
@@ -32,7 +33,7 @@ async function user(token) {
 	}
 }
 
-function admin(token, callback) {
+function admin(token) {
 	var res = {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
 		data: resData.UNKNOWN_ERROR,
@@ -71,7 +72,7 @@ function admin(token, callback) {
 			});
 		});
 	} catch (err) {
-		return res;
+		throw res;
 	}
 }
 

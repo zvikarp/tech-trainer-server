@@ -8,6 +8,26 @@ function getByUserId(userId) {
 	}).catch(err => documentNotFound());
 }
 
+function post(history) {
+	return history.save();
+}
+
+function putInLastByUserId(history) {
+	return History.findOneAndUpdate(
+		{ userId: history.userId }, {
+			$set: {
+				userId: history.userId,
+				timestamp: history.timestamp,
+				points: history.points,
+				accounts: history.accounts
+			}, $orderby: { $timestamp: -1 }
+		}
+	).then(res => {
+		if (res == null) post(history);
+	})
+		.catch(err => documentNotFound());
+}
+
 function documentNotFound() {
 	throw {
 		status: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -15,4 +35,4 @@ function documentNotFound() {
 	};
 }
 
-module.exports = { getByUserId };
+module.exports = { getByUserId, post, putInLastByUserId };

@@ -5,8 +5,8 @@ const resData = require("../consts/resData");
 const mongodbUser = require("../utils/mongodb/user");
 const mongodbSettings = require("../utils/mongodb/settings");
 const validateSettingsInput = require("../utils/validation/settings");
-const validateWebsites = require("../utils/validation/websites");
-const verifier = require("../utils/verifier");
+const verifier = require("../utils/auth/verifier");
+const passwordHasher = require("../utils/auth/passwordHasher");
 const consts = require("../consts/consts");
 
 const router = express.Router();
@@ -25,10 +25,13 @@ router.put("/accounts/:id", async (req, res) => {
 	try {
 		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
-		if (user.id !== userId) await verifier.admin(user.id);
+		if (user.id !== userId)
+			await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		await updateUserAccounts(userId, req.body.accounts);
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
+		console.log(err);
+
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const data = err.data || resData.UNKNOWN_ERROR;
 		return res.status(status).json(data);
@@ -47,11 +50,12 @@ async function updateAndValidateUserAccount(
 	newAccount,
 	accountId
 ) {
-	const isWebsite = newAccount !== "" && serverAccount.type === "website";
-	const validWebsite = !isWebsite || (await validateWebsites(serverAccount.name, newAccount));
-	if (validWebsite !== true && !validWebsite.success) {
-		throw { status: HttpStatus.BAD_REQUEST, data: validWebsite };
-	}
+	// TODO: need to add api validateion
+	// const isWebsite = newAccount !== "" && serverAccount.type === "website";
+	// const validWebsite = !isWebsite || (await validateWebsites(serverAccount.name, newAccount));
+	// if (validWebsite !== true && !validWebsite.success) {
+	// throw { status: HttpStatus.BAD_REQUEST, data: validWebsite };
+	// }
 	userAccounts[accountId] = newAccount;
 	return userAccounts;
 }
@@ -98,7 +102,8 @@ router.get("/accounts/:id", async (req, res) => {
 	try {
 		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
-		if (user.id !== userId) await verifier.admin(user.id);
+		if (user.id !== userId)
+			await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const userFromDatabase = await mongodbUser.get(userId);
 		const userAccounts = userFromDatabase.accounts;
 		return res.json(userAccounts);
@@ -133,7 +138,8 @@ router.get("/:id", async (req, res) => {
 	try {
 		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
-		if (user.id !== userId) await verifier.admin(user.id);
+		if (user.id !== userId)
+			await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		var userFromDatabase = await mongodbUser.get(userId);
 		delete userFromDatabase.password;
 		return res.json(userFromDatabase);
@@ -151,7 +157,8 @@ router.put("/settings/:id", async (req, res) => {
 	try {
 		const user = await verifier.user(req.headers[consts.AUTH_HEADER]);
 		const userId = req.params.id;
-		if (user.id !== userId) await verifier.admin(user.id);
+		if (user.id !== userId)
+			await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const validSettings = validateSettingsInput(req.body);
 		if (!validSettings.success) {
 			throw { status: HttpStatus.BAD_REQUEST, data: validSettings };
@@ -167,14 +174,19 @@ router.put("/settings/:id", async (req, res) => {
 
 async function updateUserSettings(userId, body, isAdmin) {
 	const user = await mongodbUser.get(userId);
-	const name = body.name || user.name;
-	const email = body.email || user.email;
+	const password = user.password === "" ? user.password : (await passwordHasher(body.password));
 	const bonusPoints = updateUserBonusPoints(
 		user.bonusPoints,
 		body.bonusPoints,
 		isAdmin
 	);
-	await mongodbUser.putSettings(userId, name, email, bonusPoints);
+	const newSettings = {
+		name: body.name || user.name,
+		email: body.email || user.email,
+		bonusPoints,
+		password,
+	}
+	await mongodbUser.putSettings(userId, newSettings);
 }
 
 function updateUserBonusPoints(currentBonusPoints, newBonusPpoints, isAdmin) {

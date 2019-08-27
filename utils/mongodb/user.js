@@ -44,10 +44,19 @@ function putAccounts(userId, accounts) {
 		}).catch(err => documentNotFound());
 }
 
-function putSettings(userId, name, email, bonusPoints) {
+function putSettings(userId, newSettings) {
 	return User.findOneAndUpdate(
 		{ _id: userId },
-		{ $set: { name, email, bonusPoints } },
+		{ $set: newSettings },
+		{ upsert: true }).then(user => {
+			return true;
+		}).catch(err => documentNotFound());
+}
+
+function putPoints(userId, points) {
+	return User.findOneAndUpdate(
+		{ _id: userId },
+		{ $set: {points } },
 		{ upsert: true }).then(user => {
 			return true;
 		}).catch(err => documentNotFound());
@@ -67,4 +76,8 @@ function errorAccessingDatabase() {
 	};
 }
 
-module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail, getByEmail };
+function post(post) {
+	return post.save();
+}
+
+module.exports = { get, getAll, put, putAccounts, putSettings, checkIfExistsByEmail, getByEmail, putPoints, post };
