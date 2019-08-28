@@ -20,7 +20,7 @@ async function asyncForEach(array, callback) {
 	}
 }
 
-async function getUsersPoints(user, accounts) {
+async function getUsersPoints(user, accounts, shouldCreateNew) {
 	var userPointsPerAccount = {};
 	var pointsSum = 0;
 
@@ -70,10 +70,10 @@ async function getUsersPoints(user, accounts) {
 		points: pointsSum,
 		accounts: userPointsPerAccount
 	});
-	// if (shouldCreateNew)
+	if (shouldCreateNew)
 		await mongodbHistory.post(userHistory);
-	// else
-		// await mongodbHistory.putInLastByUserId(userHistory);
+	else
+		await mongodbHistory.putInLastByUserId(userHistory);
 	return {
 		id: user.id,
 		name: user.name,
