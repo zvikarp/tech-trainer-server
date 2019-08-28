@@ -29,7 +29,7 @@ router.post("/signup", async (req, res) => {
 			name: user.name,
 			email: user.email,
 			password: user.password,
-			role: user.admin ? 'admin' : 'user' // PROD-NOTE: remove this line in produnction
+			role: 'user' // PROD-NOTE: remove this line in produnction
 		});
 		newUser.password = await passwordHasher(newUser.password);
 		await mongodbUser.post(newUser); // TODO: move to user mongoose file
