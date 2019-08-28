@@ -5,15 +5,15 @@ const HttpStatus = require("http-status-codes");
 // TODO: Better return values, on success and error also in other routes.
 
 function getLast() {
-	return Chart.findOne({ $query: {}, $orderby: { $timestamp: -1 } })
+	return Chart.findOne({ $query: {} }).sort({ timestamp: 'desc' })
 		.then(chart => {
 			return chart;
 		})
 		.catch(err => documentNotFound());
-}
-
-function get() {
-	return Chart.find({ $query: {}, $orderby: { $timestamp: -1 } }).limit(25)
+	}
+	
+	function get() {
+		return Chart.find({ $query: {} }).sort({ timestamp: 'desc' }).limit(25)
 		.then(chart => {
 			return chart;
 		})
