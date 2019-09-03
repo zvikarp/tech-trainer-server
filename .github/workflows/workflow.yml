@@ -26,3 +26,10 @@ jobs:
         npm run build --if-presen
       env:
         CI: true
+      # Deploy to App Service
+      - uses: azure/appservice-actions/webapp@master
+      - name: tech-trainer-server
+        with:
+          app-name: tech-trainer-server
+          package: '.'
+          publish-profile: ${{ secrets.techTrainerServerPublishSettings }}
