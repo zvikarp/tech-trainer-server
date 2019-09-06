@@ -1,6 +1,6 @@
 ### Where to Contribute?
 
-tech-tariner has two repositories, on for the server and one for the client, we would appreciate help in both the server and the client.
+tech-tariner has two repositories, on for the server and one for the client, we would appreciate help in both the server and the client. There are always open issues that need to be resolved and new features to implement.
 
 ### Found a Bug?
 
