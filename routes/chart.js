@@ -1,5 +1,6 @@
 const express = require("express");
-const HttpStatus = require('http-status-codes');
+const HttpStatus = require("http-status-codes");
+import schedule from "node-schedule";
 
 const websitesApi = require("../utils/websites/api");
 const resData = require("../consts/resData");
@@ -12,6 +13,8 @@ const mongodbHistory = require("../utils/mongodb/history");
 const consts = require("../consts/consts");
 
 const router = express.Router();
+
+schedule.scheduleJob("0 0 * * *", () => calcChart());
 
 // converts a `forEach` function to a async one
 async function asyncForEach(array, callback) {
@@ -34,7 +37,7 @@ async function getUsersPoints(user, accounts, shouldCreateNew) {
 				if (userAccount !== "") {
 					const numberOfItems = userAccount.split(",").length;
 					console.log(numberOfItems);
-					
+
 					pointsToAdd = numberOfItems * account.points;
 				}
 				break;
@@ -47,22 +50,27 @@ async function getUsersPoints(user, accounts, shouldCreateNew) {
 				if (userAccount > 0) {
 					pointsToAdd = userAccount * account.points;
 				}
-				break
+				break;
 			case "api":
-				const userPointFromApi = (await websitesApi.get(account.prefix, userAccount, account.suffix, account.path));
+				const userPointFromApi = await websitesApi.get(
+					account.prefix,
+					userAccount,
+					account.suffix,
+					account.path
+				);
 				pointsToAdd = userPointFromApi * account.points;
-				break
+				break;
 			default:
 				break;
 		}
 
 		userPointsPerAccount[account.name] = pointsToAdd;
-		pointsSum += pointsToAdd;		
+		pointsSum += pointsToAdd;
 	});
-	
-	userPointsPerAccount['bonus points'] = user.bonusPoints;
+
+	userPointsPerAccount["bonus points"] = user.bonusPoints;
 	pointsSum += user.bonusPoints;
-	
+
 	await mongodbUser.putPoints(user.id, pointsSum);
 	const userHistory = new History({
 		userId: user.id,
@@ -70,10 +78,8 @@ async function getUsersPoints(user, accounts, shouldCreateNew) {
 		points: pointsSum,
 		accounts: userPointsPerAccount
 	});
-	if (shouldCreateNew)
-		await mongodbHistory.post(userHistory);
-	else
-		await mongodbHistory.putInLastByUserId(userHistory);
+	if (shouldCreateNew) await mongodbHistory.post(userHistory);
+	else await mongodbHistory.putInLastByUserId(userHistory);
 	return {
 		id: user.id,
 		name: user.name,
@@ -87,19 +93,11 @@ async function getUsersPoints(user, accounts, shouldCreateNew) {
 router.post("/", async (req, res) => {
 	try {
 		await verifier.admin(req.headers[consts.AUTH_HEADER]);
-		const settings = await mongodbSettings.get();
-		const users = await mongodbUser.getAll();
-		const accounts = settings.accounts;
-		const chart = await getChart(users, accounts);
-		const newChart = new Chart({
-			users: chart,
-			timestamp: Date.now()
-		});
-		await mongodbChart.post(newChart);
+		await calcChart();
 		return res.json(resData.GENERAL_SUCCESS);
 	} catch (err) {
 		console.log(err);
-		
+
 		const status = err.status || HttpStatus.INTERNAL_SERVER_ERROR;
 		const data = err.data || resData.UNKNOWN_ERROR;
 		return res.status(status).json(data);
@@ -108,9 +106,21 @@ router.post("/", async (req, res) => {
 
 // remove user by id from array
 function removeUserFromArrayById(array, id) {
-	return array.filter(function (child) {
+	return array.filter(function(child) {
 		return child.id !== id;
 	});
+}
+
+async function calcChart() {
+	const settings = await mongodbSettings.get();
+	const users = await mongodbUser.getAll();
+	const accounts = settings.accounts;
+	const chart = await getChart(users, accounts);
+	const newChart = new Chart({
+		users: chart,
+		timestamp: Date.now()
+	});
+	await mongodbChart.post(newChart);
 }
 
 async function getChart(users, accounts) {
@@ -162,7 +172,7 @@ async function updateChart(user, accounts) {
 // route:  GET api/chart/last
 // access: Public
 // desc:   api return the last chart
-router.get('/last', async (req, res) => {
+router.get("/last", async (req, res) => {
 	try {
 		const chart = await mongodbChart.getLast();
 		return res.json(chart);
@@ -176,7 +186,7 @@ router.get('/last', async (req, res) => {
 // route:  GET api/chart/
 // access: Admin
 // desc:   api return all charts (last 25)
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
 	try {
 		await verifier.admin(req.headers[consts.AUTH_HEADER]);
 		const chart = await mongodbChart.get();
